@@ -79,7 +79,7 @@ try {
         $imageResponse = $venice->generateImage([
             'model' => 'fluently-xl',
             'prompt' => $scene['prompt'],
-            'style_preset' => 'Children\'s Book',
+            'style_preset' => 'Fantasy Art',  // Using a valid style preset
             'width' => 1024,
             'height' => 1024,
             'steps' => 35,
