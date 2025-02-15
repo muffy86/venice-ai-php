@@ -2,79 +2,47 @@
 
 /**
  * Shared utility functions for Venice AI examples
+ * @deprecated Use ResponseFormatter class instead
  */
+
+require_once __DIR__ . '/ResponseFormatter.php';
 
 /**
  * Helper function to print section headers
+ * @deprecated Use ResponseFormatter::printSection() instead
  */
 function printSection(string $title) {
-    echo "\n", str_repeat("=", 80), "\n";
-    echo $title, "\n";
-    echo str_repeat("=", 80), "\n";
+    return ResponseFormatter::printSection($title);
 }
 
 /**
  * Helper function to print responses
+ * @deprecated Use ResponseFormatter::printResponse() instead
  */
 function printResponse($response, $label = '') {
-    if ($label) echo "\n$label:\n";
-    if (is_string($response)) {
-        echo $response, "\n";
-    } else {
-        // Special handling for image generation responses
-        if (isset($response['data']) && isset($response['data'][0]['b64_json'])) {
-            $imageData = $response['data'][0];
-            echo "Image generated successfully:\n";
-            echo "- Format: " . ($imageData['format'] ?? 'unknown') . "\n";
-            echo "- Size: " . strlen($imageData['b64_json']) . " bytes\n";
-            // Omit the actual base64 data to avoid overwhelming output
-        } else {
-            echo json_encode($response, JSON_PRETTY_PRINT), "\n";
-        }
-    }
+    return ResponseFormatter::printResponse($response, $label);
 }
 
 /**
  * Helper function to handle streaming responses
+ * @deprecated Use ResponseFormatter::handleStreamingResponse() instead
  */
 function handleStreamingResponse($response, $progressCallback = null) {
-    $fullResponse = '';
-    
-    foreach ($response as $chunk) {
-        if (isset($chunk['choices'][0]['message']['content'])) {
-            $text = $chunk['choices'][0]['message']['content'];
-            echo $text;
-            $fullResponse .= $text;
-            
-            if ($progressCallback) {
-                $progressCallback($text);
-            }
-            
-            // Flush output buffer to show text immediately
-            ob_flush();
-            flush();
-        }
-    }
-    
-    return $fullResponse;
+    return ResponseFormatter::handleStreamingResponse($response, $progressCallback);
 }
 
 /**
  * Helper function to save base64 image data to a file
+ * @deprecated Use ResponseFormatter::saveImage() instead
  */
 function saveImage($base64Data, $filename) {
-    $imageData = base64_decode($base64Data);
-    file_put_contents($filename, $imageData);
-    echo "Image saved as: $filename\n";
-    return $filename;
+    return ResponseFormatter::saveImage($base64Data, $filename);
 }
 
 /**
  * Helper function to ensure output directory exists
+ * @deprecated Use ResponseFormatter::ensureOutputDirectory() instead
  */
 function ensureOutputDirectory($dir) {
-    if (!file_exists($dir)) {
-        mkdir($dir, 0777, true);
-    }
-    return $dir;
+    return ResponseFormatter::ensureOutputDirectory($dir);
 }
