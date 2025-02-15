@@ -52,7 +52,10 @@ workflows/
 ### Chat Completion Example
 ```php
 // Create an AI-powered chatbot
-$venice = new VeniceAI('your-api-key');
+require_once 'VeniceAI.php';
+$config = require 'config.php';
+$venice = new VeniceAI($config['api_key']);
+
 $response = $venice->createChatCompletion([
     ['role' => 'system', 'content' => 'You are a helpful assistant'],
     ['role' => 'user', 'content' => 'What is AI?']
@@ -62,11 +65,15 @@ $response = $venice->createChatCompletion([
 ### Image Generation Example
 ```php
 // Generate AI artwork
-$venice = new VeniceAI('your-api-key');
+require_once 'VeniceAI.php';
+$config = require 'config.php';
+$venice = new VeniceAI($config['api_key']);
+
 $image = $venice->generateImage([
     'prompt' => 'A futuristic cityscape at sunset',
-    'model' => 'sdxl-1.0',
-    'size' => '1024x1024'
+    'model' => 'fluently-xl',
+    'width' => 1024,
+    'height' => 1024
 ]);
 ```
 
@@ -83,24 +90,21 @@ $image = $venice->generateImage([
 
 ### Prerequisites
 - PHP 7.4 or higher
-- Venice AI API key
+- Venice AI API key (join Venice.ai at https://venice.ai/chat?ref=VB8W1j)
 - Basic PHP knowledge
-- Composer (recommended)
 
-### Quick Installation
-```bash
-# Install via Composer (recommended)
-composer require venice/venice-php
-
-# Or clone repository
-git clone https://github.com/venice/venice-php.git
-```
+### Quick Setup
+1. Clone this repository
+2. Copy config.example.php to config.php
+3. Add your Venice AI API key to config.php
+4. Run any example: `php examples/[category]/[example].php`
 
 ### First Steps
-1. **Set Up Your Environment**
+1. **Set Up Your Configuration**
    ```php
-   // Configure your API key securely
-   $venice = new VeniceAI(getenv('VENICE_API_KEY'));
+   // Copy config.example.php to config.php and set your API key
+   $config = require 'config.php';
+   $venice = new VeniceAI($config['api_key']);
    ```
 
 2. **Run Your First AI Example**
@@ -109,10 +113,10 @@ git clone https://github.com/venice/venice-php.git
    php text/basic_chat.php
 
    # Try AI image generation
-   php images/advanced_generation.php
+   php images/basic_generation.php
 
    # Explore advanced workflows
-   php workflows/image_analysis.php
+   php workflows/story_illustration.php
    ```
 
 3. **Explore Features**
@@ -138,7 +142,7 @@ git clone https://github.com/venice/venice-php.git
 - `presence_penalty`: Encourages new topics (-2.0 - 2.0)
 
 ### Image Generation
-- `width/height`: Image dimensions (typically 512-1024)
+- `width/height`: Image dimensions (1024x1024 square, 1024x1280 portrait, 1280x1024 landscape)
 - `steps`: Generation steps (1-50)
 - `cfg_scale`: Prompt adherence (typically 1-20)
 - `style_preset`: Predefined artistic styles
@@ -147,10 +151,10 @@ git clone https://github.com/venice/venice-php.git
 
 ### Security Best Practices
 1. **API Key Management**
-   - Use environment variables for API keys
-   - Implement key rotation policies
+   - Store API key in config.php (not version controlled)
    - Never commit credentials to version control
-   - Use secure key storage solutions
+   - Implement key rotation policies
+   - Use secure key storage in production
 
 2. **Error Handling & Logging**
    - Implement comprehensive try-catch blocks
