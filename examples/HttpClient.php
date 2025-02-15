@@ -22,7 +22,8 @@ class HttpClient {
         array $headers,
         array $data = [],
         bool $debug = false,
-        $debugHandle = null
+        $debugHandle = null,
+        ?int $testStatusCode = null
     ): array|string {
         $ch = curl_init($url);
         
@@ -37,8 +38,7 @@ class HttpClient {
             CURLOPT_HTTPHEADER => $headersList,
             CURLOPT_CUSTOMREQUEST => $method,
             CURLOPT_TIMEOUT => 30,
-            CURLOPT_HEADER => false,
-            CURLOPT_VERBOSE => $debug
+            CURLOPT_HEADER => false
         ];
 
         // Set debug handle if in debug mode
@@ -46,18 +46,13 @@ class HttpClient {
             $options[CURLOPT_STDERR] = $debugHandle;
         }
 
-        // Show our formatted debug output
+        // Show concise debug output focusing on key information
         if ($debug) {
-            echo "\nRequest URL: " . $url . "\n";
-            echo "Method: " . $method . "\n";
-            echo "Headers:\n";
-            foreach ($headers as $key => $value) {
-                echo "$key: $value\n";
-            }
+            echo "\n[Request] $method $url\n";
             if (!empty($data)) {
                 require_once __DIR__ . '/ResponseFormatter.php';
                 $debugData = ResponseFormatter::filterDebugData($data);
-                echo "Request Data: " . json_encode($debugData, JSON_PRETTY_PRINT) . "\n";
+                echo "[Payload] " . json_encode($debugData, JSON_PRETTY_PRINT) . "\n";
             }
         }
 
@@ -107,12 +102,25 @@ class HttpClient {
         while ($attempt <= $maxRetries) {
             curl_setopt_array($ch, $options);
             $response = curl_exec($ch);
-            $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
-
-            if (!curl_errno($ch)) {
-                // Success
+            if ($testStatusCode !== null) {
+                // For testing: simulate API response
+                $statusCode = $testStatusCode;
+                $contentType = 'application/json';
+                $response = json_encode([
+                    'error' => [
+                        'message' => 'Test error message',
+                        'type' => 'test_error'
+                    ]
+                ]);
                 break;
+            } else {
+                $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+                $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+
+                if (!curl_errno($ch)) {
+                    // Success
+                    break;
+                }
             }
 
             $lastError = curl_error($ch);
@@ -166,15 +174,32 @@ class HttpClient {
             // Try to parse error response
             $errorData = json_decode($response, true);
             if ($errorData && isset($errorData['error'])) {
-                // Show full error response in debug mode
-                if ($debug) {
-                    echo "\nError Response: " . json_encode($errorData, JSON_PRETTY_PRINT) . "\n";
-                }
                 $error = $errorData['error'];
                 $message = is_array($error) ? $error['message'] : $error;
-                throw new Exception($message);
+                $errorContext = '';
+                
+                // Add HTTP status context
+                switch ($statusCode) {
+                    case 401:
+                        $errorContext = 'Authentication failed. Please check your API key.';
+                        break;
+                    case 429:
+                        $errorContext = 'Rate limit exceeded. Please wait before retrying.';
+                        break;
+                    case 500:
+                        $errorContext = 'Server error encountered. Please try again later.';
+                        break;
+                }
+                
+                $fullMessage = $message . ($errorContext ? " ($errorContext)" : '');
+                
+                if ($debug) {
+                    echo "\n[Error] " . $fullMessage . "\n";
+                }
+                
+                throw new Exception($fullMessage);
             }
-            throw new Exception('API request failed with status ' . $statusCode . ': ' . $response);
+            throw new Exception("API request failed (HTTP $statusCode): " . substr($response, 0, 200));
         }
 
         // Handle binary responses (images)
@@ -202,10 +227,8 @@ class HttpClient {
         }
 
         // Debug response info
-        if ($debug) {
-            echo "\nResponse Info:\n";
-            echo "Content-Type: " . $contentType . "\n";
-            echo "Status Code: " . $statusCode . "\n";
+        if ($debug && $statusCode === 200) {
+            echo "\n[Success] HTTP " . $statusCode . "\n";
         }
 
         // Handle JSON responses

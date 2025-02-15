@@ -22,11 +22,11 @@ class VeniceAI {
     /** @var resource|null Debug output handle */
     private $debugHandle = null;
 
-    /** @var array Valid image sizes */
+    /** @var array Valid image sizes with descriptive keys */
     private const VALID_SIZES = [
-        [1024, 1024],  // Square
-        [1024, 1280],  // Portrait
-        [1280, 1024]   // Landscape
+        'square' => [1024, 1024],
+        'portrait' => [1024, 1280],
+        'landscape' => [1280, 1024]
     ];
 
     /** @var array Valid style presets */
@@ -64,7 +64,7 @@ class VeniceAI {
      * @param bool $debug Enable debug mode (shows HTTP output)
      * @throws Exception If config file is missing or API key is not set
      */
-    public function __construct(bool $debug = false) {
+    public function __construct(bool $debug = null) {
         $configFile = __DIR__ . '/config.php';
         
         if (!file_exists($configFile)) {
@@ -88,7 +88,8 @@ class VeniceAI {
         }
 
         $this->apiKey = $config['api_key'];
-        $this->debug = $debug;
+        // Check environment variable first, then constructor parameter, default to false
+        $this->debug = $debug ?? (getenv('DEBUG') ? (bool)getenv('DEBUG') : false);
         $this->headers = [
             'Authorization' => 'Bearer ' . $this->apiKey,
             'Content-Type' => 'application/json',
@@ -235,18 +236,16 @@ class VeniceAI {
         // Validate size if both width and height are provided
         if (isset($options['width']) && isset($options['height'])) {
             $size = [$options['width'], $options['height']];
-            $valid = false;
-            foreach (self::VALID_SIZES as $validSize) {
-                if ($size[0] === $validSize[0] && $size[1] === $validSize[1]) {
-                    $valid = true;
-                    break;
-                }
-            }
-            if (!$valid) {
+            $validSizes = array_map(function($s) { return implode('x', $s); }, self::VALID_SIZES);
+            $requestedSize = $size[0] . 'x' . $size[1];
+            
+            if (!in_array($requestedSize, $validSizes)) {
+                $sizeDescriptions = array_map(function($name, $dimensions) {
+                    return "$name (" . implode('x', $dimensions) . ")";
+                }, array_keys(self::VALID_SIZES), self::VALID_SIZES);
+                
                 throw new InvalidArgumentException(
-                    'Invalid image size. Must be one of: ' . implode(' ', array_map(function($size) {
-                        return $size[0] . 'x' . $size[1];
-                    }, self::VALID_SIZES))
+                    "Invalid image size: $requestedSize. Available sizes: " . implode(', ', $sizeDescriptions)
                 );
             }
         }
