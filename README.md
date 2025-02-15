@@ -1,86 +1,57 @@
 # Venice AI PHP Examples
 
-Example PHP implementations for the Venice AI API, providing OpenAI-compatible endpoints for text & image generation.
+This repository contains comprehensive PHP examples for interacting with the Venice AI API. Each example is designed to be self-contained and demonstrate every available parameter and option, eliminating the need to constantly refer to external documentation.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![PHP Version](https://img.shields.io/badge/php-%3E%3D7.4-blue.svg)](https://php.net/)
+## Official Resources
 
-## Features
+These examples draw from and complement the following official Venice AI resources:
 
-- **Text Generation**
-  - Chat completions with GPT models
-  - System prompt management
-  - Conversation context handling
+- [Official API Documentation](https://github.com/veniceai/api-docs/)
+- [Postman Collection](https://www.postman.com/veniceai/venice-ai-workspace/)
 
-- **Image Generation**
-  - Basic image generation
-  - Style-based generation
-  - Image upscaling
-  - Multiple size options
+## Philosophy
 
-- **Model Management**
-  - List available models
-  - Filter by type (text/image)
-  - Model capabilities inspection
+The examples in this repository follow these principles:
 
-## Setup
+1. **Comprehensive Coverage**: Each example demonstrates every available parameter for its endpoint, not just the common ones. This means you can find working examples of any feature without needing to search through documentation.
 
-1. Clone this repository:
-   ```bash
-   git clone https://github.com/venice-ai/venice.ai-php-examples.git
-   cd venice.ai-php-examples
-   ```
+2. **Self-Contained**: Examples include all necessary setup and configuration, making it easy to get started.
 
-2. Copy the example config file and set your API key:
-   ```bash
-   cp config.example.php config.php
-   ```
-   Then edit `config.php` and replace `your-api-key-here` with your actual Venice AI API key.
+3. **Educational**: Code is thoroughly documented with explanations of each parameter and its effects.
+
+4. **Production-Ready**: Examples follow best practices and include proper error handling.
+
+## Getting Started
+
+1. Clone this repository
+2. Copy `config.example.php` to `config.php`
+3. Add your Venice AI API key to `config.php`
+4. Run any example: `php examples/[category]/[example].php`
 
 ## Examples
 
-The `examples/` directory contains comprehensive examples:
+### Image Generation
+- `examples/images/basic_generation.php`: Demonstrates all image generation parameters including model selection, dimensions, steps, style presets, etc.
+- `examples/images/upscaling.php`: Shows image upscaling with various scale factors
+- `examples/images/analyze_image.php`: Demonstrates image analysis capabilities
 
-1. **Text Generation**
-   - `examples/text/basic_chat.php` - Simple chat completion
-   - `examples/text/advanced_chat.php` - Advanced chat features
-   - `examples/text/streaming.php` - Streaming responses
+### Text Generation
+- `examples/text/basic_chat.php`: Basic chat completion with all available parameters
+- `examples/text/advanced_chat.php`: Advanced chat features including system prompts
+- `examples/text/streaming.php`: Streaming chat completions
 
-2. **Image Generation**
-   - `examples/images/basic_generation.php` - Generate images from text
-   - `examples/images/advanced_generation.php` - Style-based generation
-   - `examples/images/upscaling.php` - Upscale existing images
-   - `examples/images/analyze_image.php` - Image analysis
+### Model Management
+- `examples/models/list_models.php`: List and filter available models
+- `examples/models/filter_models.php`: Advanced model filtering and selection
 
-3. **Model Management**
-   - `examples/models/list_models.php` - List available models
-   - `examples/models/filter_models.php` - Filter models by type
+### Workflows
+- `examples/workflows/image_analysis.php`: Combined image generation and analysis
+- `examples/workflows/story_illustration.php`: Text-to-image story creation
 
-4. **Workflows**
-   - `examples/workflows/story_illustration.php` - Generate images from story text
-   - `examples/workflows/image_analysis.php` - Analyze and describe images
+## Contributing
 
-## Error Handling
-
-The client includes comprehensive error handling:
-
-- Configuration validation
-- Input validation
-- API error handling
-- Rate limit detection
-
-## Best Practices
-
-1. **API Key Security**
-   - Never commit your `config.php` file
-   - Store your API key securely
-   - Use environment variables in production
-
-2. **Error Handling**
-   - Always wrap API calls in try-catch blocks
-   - Handle rate limits appropriately
-   - Validate input before making requests
+Contributions are welcome! Please ensure any new examples follow our philosophy of being comprehensive and self-contained.
 
 ## License
 
-MIT License - feel free to use these examples in your projects!
+This project is licensed under the MIT License - see the LICENSE file for details.

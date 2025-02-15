@@ -12,3 +12,6 @@ examples/images/output/
 .idea/
 *.swp
 *.swo
+
+# Documentation
+api-docs/

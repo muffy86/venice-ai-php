@@ -1,20 +1,43 @@
 <?php
 /**
- * Venice AI API Example: Basic Image Generation
+ * Venice AI API Example: Image Generation
  * 
- * This example demonstrates how to:
- * 1. Generate images using simple prompts
- * 2. Handle the image response
- * 3. Save the generated image
+ * This example demonstrates EVERY parameter available in the image generation API.
+ * Each example shows different combinations of parameters to serve as a complete
+ * reference for the API's capabilities.
  * 
- * This is the starting point for image generation - once you understand
- * this, see advanced_generation.php for more options and features.
+ * Required Parameters:
+ * - model (string): The model ID to use for generation
+ * - prompt (string): The description for the image (max 1500 chars)
+ * 
+ * Optional Parameters:
+ * - width (number, default: 1024): Width of the generated image
+ * - height (number, default: 1024): Height of the generated image
+ * - steps (number, default: 30, max: 50): Number of inference steps
+ * - hide_watermark (boolean, default: false): Whether to hide watermark
+ * - return_binary (boolean, default: false): Return binary image data instead of base64
+ * - seed (number): Random seed for reproducible generation
+ * - cfg_scale (number): Classifier Free Guidance scale parameter
+ * - style_preset (string): Visual style to apply
+ * - negative_prompt (string): What to avoid in generation (max 1500 chars)
+ * - safe_mode (boolean, default: false): Blur adult content
+ * 
+ * Valid Image Sizes:
+ * - Square: 1024x1024 (default)
+ * - Portrait: 1024x1280
+ * - Landscape: 1280x1024
+ * 
+ * Source: https://github.com/veniceai/api-docs/
+ * Postman: https://www.postman.com/veniceai/venice-ai-workspace/
  */
 
 require_once __DIR__ . '/../../VeniceAI.php';
 
-// Initialize the Venice AI client with debug mode enabled
-$venice = new VeniceAI(true);
+// Parse command line arguments for debug mode
+$debug = in_array('--debug', $argv) || in_array('-d', $argv);
+
+// Initialize the Venice AI client
+$venice = new VeniceAI($debug);
 
 // Create output directory if it doesn't exist
 $outputDir = __DIR__ . '/output';
@@ -27,72 +50,153 @@ if (!file_exists($outputDir)) {
 
 // Helper function to save image data
 function saveImage($imageData, $filename) {
-    try {
-        if (file_put_contents($filename, base64_decode($imageData)) === false) {
-            throw new Exception("Failed to save image to: $filename");
-        }
-        echo "Image saved as: $filename\n";
-    } catch (Exception $e) {
-        throw new Exception("Failed to save image: " . $e->getMessage());
+    // Check if data is base64 encoded
+    if (preg_match('/^[a-zA-Z0-9\/\r\n+]*={0,2}$/', $imageData)) {
+        $imageData = base64_decode($imageData);
     }
+    
+    if (!$imageData) {
+        throw new Exception("Failed to process image data");
+    }
+    
+    if (file_put_contents($filename, $imageData) === false) {
+        throw new Exception("Failed to save image to: $filename");
+    }
+    
+    echo "Image saved as: $filename\n";
 }
 
 try {
-    // Example 1: Basic image generation
-    echo "Example 1: Basic Image Generation\n";
+    // Example 1: Basic square image with minimal parameters
+    echo "Example 1: Basic Square Image (Minimal Parameters)\n";
     echo str_repeat("-", 50) . "\n";
     
     $response = $venice->generateImage([
-        'model' => 'fluently-xl',  // Basic model for standard images
+        'model' => 'fluently-xl',
         'prompt' => 'A beautiful sunset over mountains',
-        'width' => 1024,   // Standard width
-        'height' => 1024   // Standard height
+        'width' => 1024,
+        'height' => 1024
     ]);
 
-    // Save the binary image data
     if (isset($response['data'])) {
-        saveImage(
-            $response['data'],
-            $outputDir . '/sunset.png'
-        );
+        saveImage($response['data'], $outputDir . '/1_basic_square.png');
     }
 
-    // Example 2: Simple portrait generation
-    echo "\nExample 2: Portrait Generation\n";
+    // Example 2: Portrait with quality parameters
+    echo "\nExample 2: Portrait with Quality Parameters\n";
     echo str_repeat("-", 50) . "\n";
     
     $response = $venice->generateImage([
         'model' => 'fluently-xl',
-        'prompt' => 'Professional portrait of a business person, studio lighting',
-        'width' => 512,    // Smaller size for portraits
-        'height' => 768    // Portrait orientation
+        'prompt' => 'Professional portrait of a business person in an office',
+        'width' => 1024,
+        'height' => 1280,
+        'steps' => 50,                     // Maximum steps for best quality
+        'cfg_scale' => 7.5,                // Balanced prompt adherence
+        'hide_watermark' => true,          // Remove watermark
+        'style_preset' => 'Hyperrealism',  // From valid styles list
+        'negative_prompt' => 'cartoon, illustration, blurry, low quality, bad lighting'
     ]);
 
-    // Save the binary image data
     if (isset($response['data'])) {
-        saveImage(
-            $response['data'],
-            $outputDir . '/portrait.png'
-        );
+        saveImage($response['data'], $outputDir . '/2_portrait_quality.png');
     }
 
-    // Example 3: Simple landscape generation
-    echo "\nExample 3: Landscape Generation\n";
+    // Example 3: Landscape with artistic style
+    echo "\nExample 3: Landscape with Artistic Style\n";
     echo str_repeat("-", 50) . "\n";
     
     $response = $venice->generateImage([
         'model' => 'fluently-xl',
-        'prompt' => 'Serene beach scene with palm trees',
-        'width' => 768,    // Landscape orientation
-        'height' => 512
+        'prompt' => 'Serene beach scene with palm trees at sunset',
+        'width' => 1280,
+        'height' => 1024,
+        'steps' => 40,
+        'cfg_scale' => 8.0,
+        'style_preset' => 'Watercolor',    // From valid styles list
+        'seed' => 12345                    // Fixed seed for reproducibility
     ]);
 
-    // Save the binary image data
     if (isset($response['data'])) {
-        saveImage(
-            $response['data'],
-            $outputDir . '/beach.png'
-        );
+        saveImage($response['data'], $outputDir . '/3_landscape_artistic.png');
+    }
+
+    // Example 4: Gaming style with safe mode
+    echo "\nExample 4: Gaming Style with Safe Mode\n";
+    echo str_repeat("-", 50) . "\n";
+    
+    $response = $venice->generateImage([
+        'model' => 'fluently-xl',
+        'prompt' => 'Epic battle scene with dragons and warriors',
+        'width' => 1024,
+        'height' => 1024,
+        'steps' => 35,
+        'cfg_scale' => 9.0,
+        'style_preset' => 'RPG Fantasy Game',  // From valid styles list
+        'safe_mode' => true,                   // Enable content filtering
+        'return_binary' => true                // Get raw binary data
+    ]);
+
+    if (isset($response['data'])) {
+        saveImage($response['data'], $outputDir . '/4_gaming_safe.png');
+    }
+
+    // Example 5: Commercial photography
+    echo "\nExample 5: Commercial Photography\n";
+    echo str_repeat("-", 50) . "\n";
+    
+    $response = $venice->generateImage([
+        'model' => 'fluently-xl',
+        'prompt' => 'Elegant plated gourmet dish on marble background',
+        'width' => 1024,
+        'height' => 1024,
+        'steps' => 45,
+        'cfg_scale' => 7.0,
+        'style_preset' => 'Food Photography',  // From valid styles list
+        'negative_prompt' => 'cluttered, messy, dark, blurry',
+        'hide_watermark' => true
+    ]);
+
+    if (isset($response['data'])) {
+        saveImage($response['data'], $outputDir . '/5_commercial.png');
+    }
+
+    // Example 6: Paper art style
+    echo "\nExample 6: Paper Art Style\n";
+    echo str_repeat("-", 50) . "\n";
+    
+    $response = $venice->generateImage([
+        'model' => 'fluently-xl',
+        'prompt' => 'Intricate butterfly design',
+        'width' => 1024,
+        'height' => 1024,
+        'steps' => 40,
+        'cfg_scale' => 7.5,
+        'style_preset' => 'Paper Quilling',  // From valid styles list
+        'negative_prompt' => 'flat, simple, basic'
+    ]);
+
+    if (isset($response['data'])) {
+        saveImage($response['data'], $outputDir . '/6_paper_art.png');
+    }
+
+    // Example 7: Photography style
+    echo "\nExample 7: Photography Style\n";
+    echo str_repeat("-", 50) . "\n";
+    
+    $response = $venice->generateImage([
+        'model' => 'fluently-xl',
+        'prompt' => 'City skyline at night with neon lights',
+        'width' => 1280,
+        'height' => 1024,
+        'steps' => 45,
+        'cfg_scale' => 8.0,
+        'style_preset' => 'Neon Noir',  // From valid styles list
+        'negative_prompt' => 'daylight, bright, sunny'
+    ]);
+
+    if (isset($response['data'])) {
+        saveImage($response['data'], $outputDir . '/7_photography.png');
     }
 
 } catch (Exception $e) {
@@ -100,10 +204,39 @@ try {
     exit(1);
 }
 
-// Output basic tips
-echo "\nImage Generation Tips:\n";
-echo "- Keep prompts clear and descriptive\n";
-echo "- Standard sizes are 512x512, 1024x1024\n";
-echo "- Adjust width/height ratio for different orientations\n";
-echo "- Images are saved directly to the output directory\n";
-echo "- Check the output directory for generated images\n";
+// Output comprehensive tips
+echo "\nImage Generation Parameters:\n";
+echo "1. Required:\n";
+echo "   • model: Model ID to use (e.g., 'fluently-xl')\n";
+echo "   • prompt: Image description (max 1500 chars)\n";
+echo "\n2. Image Size Options:\n";
+echo "   • Square: 1024x1024 (default)\n";
+echo "   • Portrait: 1024x1280\n";
+echo "   • Landscape: 1280x1024\n";
+echo "\n3. Quality Control:\n";
+echo "   • steps: 1-50 (default: 30)\n";
+echo "   • cfg_scale: Controls prompt adherence\n";
+echo "   • negative_prompt: What to avoid (max 1500 chars)\n";
+echo "\n4. Style Options:\n";
+echo "   • style_preset: Many options (see documentation above)\n";
+echo "   • hide_watermark: Remove watermark (default: false)\n";
+echo "\n5. Advanced Options:\n";
+echo "   • seed: For reproducible results\n";
+echo "   • return_binary: Raw data vs base64 (default: false)\n";
+echo "   • safe_mode: Blur adult content (default: false)\n";
+echo "\n6. Best Practices:\n";
+echo "   • Use clear, detailed prompts\n";
+echo "   • Include negative prompts for better control\n";
+echo "   • Increase steps for higher quality\n";
+echo "   • Save seeds for reproducible images\n";
+echo "   • Choose appropriate style presets\n";
+echo "\n7. Style Categories:\n";
+echo "   • Artistic: 3D Model, Digital Art, Fantasy Art...\n";
+echo "   • Commercial: Advertising, Food Photography...\n";
+echo "   • Fine Art: Abstract, Watercolor, Pop Art...\n";
+echo "   • Gaming: RPG Fantasy Game, Minecraft, Pokemon...\n";
+echo "   • Aesthetic: Gothic, Minimalist, Space...\n";
+echo "   • Paper Art: Origami, Kirigami, Collage...\n";
+echo "   • Photography: Film Noir, HDR, Tilt-Shift...\n";
+echo "\n8. Debug Options:\n";
+echo "   • --debug (-d): Show detailed HTTP output\n";

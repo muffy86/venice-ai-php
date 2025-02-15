@@ -6,12 +6,18 @@
  * 1. Generate an image
  * 2. Use Qwen's multimodal capabilities to analyze the image
  * 3. Process and display the analysis results
+ * 
+ * Debug Options:
+ * --debug (-d): Show detailed HTTP output
  */
 
 require_once __DIR__ . '/../../VeniceAI.php';
 
-// Initialize the Venice AI client with debug mode enabled
-$venice = new VeniceAI(true);
+// Parse command line arguments for debug mode
+$debug = in_array('--debug', $argv) || in_array('-d', $argv);
+
+// Initialize the Venice AI client
+$venice = new VeniceAI($debug);
 
 // Create output directory if it doesn't exist
 $outputDir = __DIR__ . '/output';
@@ -54,7 +60,6 @@ try {
     if ($imageData === false) {
         throw new Exception("Failed to read generated image for analysis");
     }
-    $base64Image = base64_encode($imageData);
 
     // Prepare analysis prompts
     $prompts = [
@@ -80,7 +85,7 @@ try {
                     [
                         'type' => 'image_url',
                         'image_url' => [
-                            'url' => 'data:image/png;base64,' . $base64Image
+                            'url' => 'data:image/png;base64,' . base64_encode($imageData)
                         ]
                     ]
                 ]
@@ -109,3 +114,5 @@ echo "- Consider different aspects like composition, color, style\n";
 echo "- Use the analysis for content verification or description\n";
 echo "- Try different prompts to get varied perspectives\n";
 echo "- Compare analyses to understand the image better\n";
+echo "\nDebug Options:\n";
+echo "- --debug (-d): Show detailed HTTP output\n";

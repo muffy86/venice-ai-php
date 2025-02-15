@@ -1,50 +1,57 @@
 <?php
 /**
- * Venice AI API Example: Basic Model Listing
+ * Venice AI API Example: Model Listing
  * 
  * This example demonstrates how to:
- * 1. Initialize the Venice AI client
- * 2. List all available models
- * 3. Access model information like ID, type, and creation date
+ * 1. List all available models
+ * 2. Filter models by type (text/image)
+ * 3. Access model information
+ * 
+ * Source: https://github.com/veniceai/api-docs/
+ * Postman: https://www.postman.com/veniceai/venice-ai-workspace/
  */
 
 require_once __DIR__ . '/../../VeniceAI.php';
 
-// Initialize the Venice AI client
-// Set debug to true to see detailed API interaction
-$venice = new VeniceAI('qmiRR9vbf18QlgLJhaXLlIutf0wJuzdUgPr24dcBtD', true);
+// Initialize the Venice AI client with debug mode enabled
+$venice = new VeniceAI(true);
 
 try {
-    // List all available models
+    // Example 1: List all models
+    echo "Example 1: All Available Models\n";
+    echo str_repeat("-", 50) . "\n\n";
+    
     $models = $venice->listModels();
-    
-    echo "Available Models:\n";
-    echo str_repeat("-", 50) . "\n";
-    
     foreach ($models['data'] as $model) {
-        // Format and display key model information
-        echo sprintf(
-            "ID: %s\nType: %s\nCreated: %s\nOwned By: %s\n",
-            $model['id'],
-            $model['type'],
-            date('Y-m-d', $model['created']),
-            $model['owned_by']
-        );
-        
-        // Display model specifications if available
-        if (isset($model['model_spec'])) {
-            if (isset($model['model_spec']['availableContextTokens'])) {
-                echo "Context Tokens: " . $model['model_spec']['availableContextTokens'] . "\n";
-            }
-            if (isset($model['model_spec']['traits'])) {
-                echo "Traits: " . implode(', ', $model['model_spec']['traits']) . "\n";
-            }
-        }
-        
-        echo str_repeat("-", 50) . "\n";
+        echo "• {$model['id']}\n";
+    }
+
+    // Example 2: List text models only
+    echo "\nExample 2: Text Models Only\n";
+    echo str_repeat("-", 50) . "\n\n";
+    
+    $textModels = $venice->listTextModels();
+    foreach ($textModels['data'] as $model) {
+        echo "• {$model['id']}\n";
+    }
+
+    // Example 3: List image models only
+    echo "\nExample 3: Image Models Only\n";
+    echo str_repeat("-", 50) . "\n\n";
+    
+    $imageModels = $venice->listImageModels();
+    foreach ($imageModels['data'] as $model) {
+        echo "• {$model['id']}\n";
     }
 
 } catch (Exception $e) {
     echo "Error: " . $e->getMessage() . "\n";
     exit(1);
 }
+
+// Output model selection tips
+echo "\nModel Selection Tips:\n";
+echo "• Choose text models based on your language needs\n";
+echo "• Select image models based on style and quality requirements\n";
+echo "• Consider model capabilities and limitations\n";
+echo "• Check model availability in your region\n";
