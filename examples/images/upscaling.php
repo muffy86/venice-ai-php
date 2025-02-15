@@ -15,8 +15,8 @@
 
 require_once __DIR__ . '/../../VeniceAI.php';
 
-// Initialize the Venice AI client
-$venice = new VeniceAI('qmiRR9vbf18QlgLJhaXLlIutf0wJuzdUgPr24dcBtD', true);
+// Initialize the Venice AI client with debug mode enabled
+$venice = new VeniceAI(true);
 
 // Create output directory if it doesn't exist
 $outputDir = __DIR__ . '/output';
@@ -63,12 +63,12 @@ try {
         // Save the original image
         saveImage(
             $response['data'],
-            $outputDir . '/hummingbird_original.png'
+            $outputDir . '/pattern_original.png'
         );
         
         echo "Upscaling generated image...\n";
         $upscaledResponse = $venice->upscaleImage([
-            'image' => $outputDir . '/hummingbird_original.png',
+            'image' => $outputDir . '/pattern_original.png',
             'scale' => 4,  // Quadruple the size for first test
             'return_binary' => true
         ]);
@@ -77,7 +77,7 @@ try {
         if (isset($upscaledResponse['data'])) {
             saveImage(
                 $upscaledResponse['data'],
-                $outputDir . '/hummingbird_upscaled_2x_first.png'
+                $outputDir . '/pattern_upscaled_4x.png'
             );
         }
     }
@@ -86,9 +86,9 @@ try {
     echo "\nExample 2: Upscaling with Different Parameters\n";
     echo str_repeat("-", 50) . "\n";
     
-    $imagePath = $outputDir . '/hummingbird_original.png';
+    $imagePath = $outputDir . '/pattern_original.png';
     if (file_exists($imagePath)) {
-        echo "Upscaling image with 2x scale...\n";
+        echo "Upscaling image with 1.5x scale...\n";
         try {
             $response = $venice->upscaleImage([
                 'image' => $imagePath,
@@ -99,7 +99,7 @@ try {
             if (isset($response['data'])) {
                 saveImage(
                     $response['data'],
-                    $outputDir . '/hummingbird_upscaled_2x.png'
+                    $outputDir . '/pattern_upscaled_1.5x.png'
                 );
             }
         } catch (Exception $e) {
@@ -135,28 +135,7 @@ echo "- Consider memory usage when handling large images\n";
 echo "- Always clean up temporary files\n";
 echo "- Check upscaled image quality before using\n";
 
-// Step 4: Analyze the upscaled image with qwen2.5vl72b
-echo "\nStep 4: AI Analysis of Upscaled Image\n";
-echo str_repeat("-", 50) . "\n";
-
-$analysisResponse = $venice->createChatCompletion([
-    [
-        'role' => 'system',
-        'content' => 'You are an expert in image analysis. Describe images in detail, focusing on quality and technical aspects.'
-    ],
-    [
-        'role' => 'user',
-        'content' => 'Analyze this upscaled image. How effective was the upscaling? What details can you see?'
-    ]
-], 'qwen2.5vl72b', [
-    'temperature' => 0.7,
-    'max_completion_tokens' => 300
-]);
-
-echo "AI Analysis:\n";
-echo $analysisResponse['choices'][0]['message']['content'] . "\n\n";
-
-// Output common use cases
+// Common use cases
 echo "\nCommon Use Cases:\n";
 echo "1. Enhance AI-generated images for higher quality\n";
 echo "2. Improve existing images for printing or display\n";

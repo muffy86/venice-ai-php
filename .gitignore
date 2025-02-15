@@ -1,0 +1,14 @@
+# Configuration
+config.php
+
+# Generated files
+examples/images/output/
+*.png
+*.jpg
+*.jpeg
+
+# IDE/Editor files
+.vscode/
+.idea/
+*.swp
+*.swo

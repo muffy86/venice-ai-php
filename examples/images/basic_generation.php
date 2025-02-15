@@ -13,8 +13,8 @@
 
 require_once __DIR__ . '/../../VeniceAI.php';
 
-// Initialize the Venice AI client
-$venice = new VeniceAI('qmiRR9vbf18QlgLJhaXLlIutf0wJuzdUgPr24dcBtD', true);
+// Initialize the Venice AI client with debug mode enabled
+$venice = new VeniceAI(true);
 
 // Create output directory if it doesn't exist
 $outputDir = __DIR__ . '/output';
@@ -28,7 +28,7 @@ if (!file_exists($outputDir)) {
 // Helper function to save image data
 function saveImage($imageData, $filename) {
     try {
-        if (file_put_contents($filename, $imageData) === false) {
+        if (file_put_contents($filename, base64_decode($imageData)) === false) {
             throw new Exception("Failed to save image to: $filename");
         }
         echo "Image saved as: $filename\n";

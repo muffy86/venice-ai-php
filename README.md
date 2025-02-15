@@ -1,21 +1,9 @@
-# Venice AI PHP Client | OpenAI-Compatible API Integration
+# Venice AI PHP Examples
 
-Version: 1.0.0 | PHP SDK for AI Text & Image Generation
+Example PHP implementations for the Venice AI API, providing OpenAI-compatible endpoints for text & image generation.
 
-A powerful, production-ready PHP client for the Venice AI API, providing seamless integration with OpenAI-compatible endpoints. Perfect for chatbots, content generation, image creation, and AI-powered applications.
-
-[![Latest Version](https://img.shields.io/github/v/release/venice/venice-php)](https://github.com/venice/venice-php/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![PHP Version](https://img.shields.io/badge/php-%3E%3D7.4-blue.svg)](https://php.net/)
-
-## Why Choose Venice AI PHP Client?
-
-- 🚀 **OpenAI-Compatible**: Drop-in replacement for OpenAI's API
-- 💡 **Advanced AI Features**: Text generation, image creation, and analysis
-- 🛡️ **Production-Ready**: Enterprise-grade error handling and security
-- 📦 **Easy Integration**: Simple installation via Composer
-- 📘 **Comprehensive Documentation**: Clear examples and guides
-- 🔧 **Type-Safe**: Full PHP 7.4+ type hints and return types
 
 ## Features
 
@@ -35,98 +23,64 @@ A powerful, production-ready PHP client for the Venice AI API, providing seamles
   - Filter by type (text/image)
   - Model capabilities inspection
 
-## Installation
+## Setup
 
-1. Clone this repository or copy the files to your project:
-   - `VeniceAI.php` - The main client class
-   - `example.php` - Comprehensive examples
+1. Clone this repository:
+   ```bash
+   git clone https://github.com/venice-ai/venice.ai-php-examples.git
+   cd venice.ai-php-examples
+   ```
 
-2. Include the client in your project:
-```php
-require_once 'VeniceAI.php';
-```
-
-## Quick Start
-
-```php
-// Initialize the client
-$venice = new VeniceAI('your-api-key');
-
-// Generate text
-$response = $venice->createChatCompletion([
-    [
-        'role' => 'user',
-        'content' => 'What is AI?'
-    ]
-]);
-
-// Generate an image
-$image = $venice->generateImage([
-    'prompt' => 'A beautiful sunset',
-    'model' => 'sdxl-1.0',
-    'size' => '1024x1024'
-]);
-```
+2. Copy the example config file and set your API key:
+   ```bash
+   cp config.example.php config.php
+   ```
+   Then edit `config.php` and replace `your-api-key-here` with your actual Venice AI API key.
 
 ## Examples
 
-The `example.php` file contains comprehensive examples of all features:
+The `examples/` directory contains comprehensive examples:
 
-1. **Model Management**
-   - Listing all models
-   - Filtering by type
-   - Inspecting model capabilities
+1. **Text Generation**
+   - `examples/text/basic_chat.php` - Simple chat completion
+   - `examples/text/advanced_chat.php` - Advanced chat features
+   - `examples/text/streaming.php` - Streaming responses
 
-2. **Text Generation**
-   - Basic chat completions
-   - System prompt usage
-   - Custom prompt configurations
+2. **Image Generation**
+   - `examples/images/basic_generation.php` - Generate images from text
+   - `examples/images/advanced_generation.php` - Style-based generation
+   - `examples/images/upscaling.php` - Upscale existing images
+   - `examples/images/analyze_image.php` - Image analysis
 
-3. **Image Generation**
-   - Basic image generation
-   - Style-based generation
-   - Image upscaling
+3. **Model Management**
+   - `examples/models/list_models.php` - List available models
+   - `examples/models/filter_models.php` - Filter models by type
 
-4. **Error Handling**
-   - Input validation
-   - API error handling
-   - Rate limit management
-
-Run the examples:
-```bash
-php example.php
-```
+4. **Workflows**
+   - `examples/workflows/story_illustration.php` - Generate images from story text
+   - `examples/workflows/image_analysis.php` - Analyze and describe images
 
 ## Error Handling
 
 The client includes comprehensive error handling:
 
-- `InvalidArgumentException` for invalid input
-- `Exception` for API errors with detailed messages
-- Rate limit detection and handling
-- Input validation for all parameters
+- Configuration validation
+- Input validation
+- API error handling
+- Rate limit detection
 
 ## Best Practices
 
 1. **API Key Security**
+   - Never commit your `config.php` file
    - Store your API key securely
-   - Use environment variables when possible
-   - Never commit API keys to version control
+   - Use environment variables in production
 
 2. **Error Handling**
    - Always wrap API calls in try-catch blocks
    - Handle rate limits appropriately
    - Validate input before making requests
 
-3. **Resource Management**
-   - Close connections properly
-   - Handle large responses carefully
-   - Monitor API usage
-
-## Contributing
-
-Feel free to submit issues and enhancement requests!
-
 ## License
 
-MIT License - feel free to use this client in your projects!
+MIT License - feel free to use these examples in your projects!

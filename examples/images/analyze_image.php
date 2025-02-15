@@ -10,8 +10,8 @@
 
 require_once __DIR__ . '/../../VeniceAI.php';
 
-// Initialize the Venice AI client
-$venice = new VeniceAI('qmiRR9vbf18QlgLJhaXLlIutf0wJuzdUgPr24dcBtD', true);
+// Initialize the Venice AI client with debug mode enabled
+$venice = new VeniceAI(true);
 
 // Create output directory if it doesn't exist
 $outputDir = __DIR__ . '/output';
@@ -38,47 +38,62 @@ try {
         throw new Exception("Image generation failed");
     }
 
-    // Save the generated image silently
+    // Save the generated image
     $imagePath = $outputDir . '/test_image.png';
     if (!file_put_contents($imagePath, base64_decode($response['data']))) {
         throw new Exception("Failed to save image to: $imagePath");
     }
+    echo "Generated image saved to: $imagePath\n";
 
     // Step 2: Analyze the image with Qwen
-    echo "Step 2: Analyzing Image with Qwen\n";
+    echo "\nStep 2: Analyzing Image with Qwen\n";
     echo str_repeat("-", 50) . "\n";
 
-    // Convert image to base64 silently
+    // Read and encode the image
     $imageData = file_get_contents($imagePath);
     if ($imageData === false) {
         throw new Exception("Failed to read generated image for analysis");
     }
     $base64Image = base64_encode($imageData);
 
-    // Send to Qwen for analysis
-    $analysisResponse = $venice->createChatCompletion([
-        [
-            'role' => 'user',
-            'content' => [
-                [
-                    'type' => 'text',
-                    'text' => 'What do you see in this image? Please describe it in detail, including colors, composition, and any notable features.'
-                ],
-                [
-                    'type' => 'image_url',
-                    'image_url' => [
-                        'url' => 'data:image/png;base64,' . $base64Image
+    // Prepare analysis prompts
+    $prompts = [
+        "What do you see in this image? Please describe it in detail.",
+        "What are the main colors and composition elements?",
+        "Are there any notable artistic techniques or styles used?"
+    ];
+
+    foreach ($prompts as $index => $prompt) {
+        echo "\nAnalysis " . ($index + 1) . ":\n";
+        echo "Question: $prompt\n";
+        echo "Response:\n";
+
+        // Send to Qwen for analysis
+        $analysisResponse = $venice->createChatCompletion([
+            [
+                'role' => 'user',
+                'content' => [
+                    [
+                        'type' => 'text',
+                        'text' => $prompt
+                    ],
+                    [
+                        'type' => 'image_url',
+                        'image_url' => [
+                            'url' => 'data:image/png;base64,' . $base64Image
+                        ]
                     ]
                 ]
             ]
-        ]
-    ], 'qwen-2.5-vl');
+        ], 'qwen-2.5-vl');
 
-    echo "\nQwen's Analysis:\n";
-    if (isset($analysisResponse['choices'][0]['message']['content'])) {
-        echo $analysisResponse['choices'][0]['message']['content'] . "\n";
-    } else {
-        echo "Failed to get analysis response\n";
+        if (isset($analysisResponse['choices'][0]['message']['content'])) {
+            echo $analysisResponse['choices'][0]['message']['content'] . "\n";
+        } else {
+            echo "Failed to get analysis response\n";
+        }
+        
+        echo str_repeat("-", 50) . "\n";
     }
 
 } catch (Exception $e) {
@@ -92,3 +107,5 @@ echo "- Provide clear, high-quality images for best results\n";
 echo "- Ask specific questions about what you want to analyze\n";
 echo "- Consider different aspects like composition, color, style\n";
 echo "- Use the analysis for content verification or description\n";
+echo "- Try different prompts to get varied perspectives\n";
+echo "- Compare analyses to understand the image better\n";
