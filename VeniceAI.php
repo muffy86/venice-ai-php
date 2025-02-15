@@ -330,14 +330,50 @@ class VeniceAI {
                 ];
             }
 
-            // Handle JSON response
-            if (isset($response['images']) && is_array($response['images']) && !empty($response['images'])) {
+            // Debug response
+            if ($this->debug) {
+                echo "\nResponse type: " . gettype($response) . "\n";
+                if (is_array($response)) {
+                    echo "Array keys: " . implode(', ', array_keys($response)) . "\n";
+                    if (isset($response['images'])) {
+                        echo "Images type: " . gettype($response['images']) . "\n";
+                    }
+                }
+            }
+
+            // Handle response
+            if (is_array($response) && isset($response['images']) &&
+                is_array($response['images']) && !empty($response['images'])) {
+                // The images array contains the base64 strings directly
                 return [
-                    'data' => $response['images'][0]
+                    'data' => [
+                        [
+                            'b64_json' => $response['images'][0]
+                        ]
+                    ]
                 ];
             }
 
-            throw new Exception('No image data in response');
+            // If we get here, the response wasn't in the expected format
+            if ($this->debug) {
+                echo "\nUnexpected API Response Structure:\n";
+                if (is_array($response)) {
+                    echo "Response structure:\n";
+                    $structure = array_map(function($val) {
+                        if (is_string($val) && (
+                            strpos($val, 'base64') !== false ||
+                            strlen($val) > 100
+                        )) {
+                            return '[long string/base64 data]';
+                        }
+                        return $val;
+                    }, $response);
+                    var_export($structure);
+                } else {
+                    echo "Response type: " . gettype($response) . "\n";
+                }
+            }
+            throw new Exception('Response missing expected image data. Check debug output for details.');
         } finally {
             $this->headers = $originalHeaders;
         }
@@ -394,12 +430,19 @@ class VeniceAI {
         try {
             $response = $this->request('POST', '/image/upscale', $data);
             
-            // Ensure we have binary data in the response
-            if (!isset($response['data']) || empty($response['data'])) {
+            // For upscaling, we get back raw PNG data
+            if (empty($response)) {
                 throw new Exception('No image data received from upscaling request');
             }
-            
-            return $response;
+
+            // Convert raw image data to expected format
+            return [
+                'data' => [
+                    [
+                        'b64_json' => base64_encode($response)
+                    ]
+                ]
+            ];
         } finally {
             $this->headers = $originalHeaders;
         }
@@ -423,7 +466,9 @@ class VeniceAI {
             echo "Method: " . $method . "\n";
             echo "Headers: " . json_encode($this->headers, JSON_PRETTY_PRINT) . "\n";
             if (!empty($data)) {
-                echo "Request Data: " . json_encode($data, JSON_PRETTY_PRINT) . "\n";
+                // Filter out base64 data and long strings from debug output
+                $debugData = $this->filterDebugData($data);
+                echo "Request Data: " . json_encode($debugData, JSON_PRETTY_PRINT) . "\n";
             }
         }
 
@@ -508,7 +553,9 @@ class VeniceAI {
                 if ($this->debug) {
                     echo "\nError Response: " . json_encode($errorData, JSON_PRETTY_PRINT) . "\n";
                 }
-                throw new Exception($errorData['error']);
+                $error = $errorData['error'];
+                $message = is_array($error) ? $error['message'] : $error;
+                throw new Exception($message);
             }
             throw new Exception('API request failed with status ' . $statusCode . ': ' . $response);
         }
@@ -537,12 +584,68 @@ class VeniceAI {
             return $response;
         }
 
-        // Handle JSON responses
-        $responseData = json_decode($response, true);
-        if ($responseData === null) {
-            throw new Exception('Failed to parse JSON response: ' . json_last_error_msg());
+        // Debug response info
+        if ($this->debug) {
+            echo "\nResponse Info:\n";
+            echo "Content-Type: " . $contentType . "\n";
+            echo "Status Code: " . $statusCode . "\n";
         }
 
-        return $responseData;
+        // Handle JSON responses
+        if (strpos($contentType, 'application/json') !== false) {
+            $responseData = json_decode($response, true);
+            if ($responseData === null) {
+                if ($this->debug) {
+                    echo "\nFailed to parse JSON response. Raw response (first 100 chars):\n";
+                    echo substr($response, 0, 100) . "...\n";
+                }
+                throw new Exception('Failed to parse JSON response: ' . json_last_error_msg());
+            }
+            return $responseData;
+        }
+
+        // For non-JSON responses, try to decode as JSON first
+        $responseData = json_decode($response, true);
+        if ($responseData !== null) {
+            return $responseData;
+        }
+
+        // If not JSON, return the raw response
+        return $response;
+    }
+
+    /**
+     * Filter sensitive data from debug output
+     *
+     * @param mixed $data The data to filter
+     * @return mixed Filtered data safe for debug output
+     */
+    private function filterDebugData($data) {
+        if (is_array($data)) {
+            $filtered = [];
+            foreach ($data as $key => $value) {
+                if ($key === 'messages') {
+                    $filtered[$key] = array_map(function($msg) {
+                        if (isset($msg['content']) && is_array($msg['content'])) {
+                            $msg['content'] = array_map(function($item) {
+                                if (isset($item['image_url']['url']) && strpos($item['image_url']['url'], 'base64') !== false) {
+                                    $item['image_url']['url'] = '[base64 image data]';
+                                }
+                                return $item;
+                            }, $msg['content']);
+                        }
+                        return $msg;
+                    }, $value);
+                } else {
+                    $filtered[$key] = $this->filterDebugData($value);
+                }
+            }
+            return $filtered;
+        } elseif (is_string($data)) {
+            if (strpos($data, 'base64') !== false || strlen($data) > 100) {
+                return '[long string/base64 data]';
+            }
+        }
+        return $data;
     }
 }

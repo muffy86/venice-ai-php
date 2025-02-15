@@ -15,8 +15,8 @@ require_once __DIR__ . '/../../VeniceAI.php';
 require_once __DIR__ . '/../utils.php';
 $config = require_once __DIR__ . '/../config.php';
 
-// Initialize the Venice AI client
-$venice = new VeniceAI($config['api_key'], true);
+// Initialize the Venice AI client with debug mode enabled
+$venice = new VeniceAI($config['api_key'], true);  // Enable debug mode to see API interactions
 
 // Ensure output directory exists
 $outputDir = ensureOutputDirectory(__DIR__ . '/output');
@@ -38,12 +38,23 @@ try {
         'negative_prompt' => 'blurry, low quality, distorted'
     ]);
 
+    // Check for valid response
     if (!isset($response['data'][0]['b64_json'])) {
-        throw new Exception("Image generation failed");
+        if (isset($response['error'])) {
+            throw new Exception("API Error: " . $response['error']);
+        } else {
+            echo "Unexpected API Response:\n";
+            print_r($response);
+            throw new Exception("Unexpected response format. Check API response above for details.");
+        }
+    }
+
+    if (!isset($response['data']) || !is_array($response['data']) || empty($response['data'])) {
+        throw new Exception("No image data in response");
     }
 
     // Save the original image
-    saveImage(
+    $imagePath = saveImage(
         $response['data'][0]['b64_json'],
         $outputDir . '/surreal_landscape_original.png'
     );
@@ -51,59 +62,93 @@ try {
     // Step 2: Upscale the generated image
     printSection("Step 2: Upscaling Image");
     
-    // Create temporary file for upscaling
+    // Create temp file for upscaling
     $tempFile = tempnam(sys_get_temp_dir(), 'venice_');
-    file_put_contents($tempFile, base64_decode($response['data'][0]['b64_json']));
+    file_put_contents($tempFile, file_get_contents($imagePath));
     
     $upscaledResponse = $venice->upscaleImage([
-        'image' => $tempFile
+        'image' => $tempFile,
+        'scale' => '2'  // Specify scale factor
     ]);
     
-    // Save the upscaled result
-    saveImage(
-        $upscaledResponse['data'][0]['b64_json'],
-        $outputDir . '/surreal_landscape_upscaled.png'
-    );
+    if (isset($upscaledResponse['data'][0]['b64_json'])) {
+        // Save the upscaled result
+        saveImage(
+            $upscaledResponse['data'][0]['b64_json'],
+            $outputDir . '/surreal_landscape_upscaled.png'
+        );
+    }
     
-    unlink($tempFile);  // Clean up temp file
+    unlink($tempFile);
 
     // Step 3: Analyze the image using AI
     printSection("Step 3: AI Analysis of the Image");
     
     // First, get a technical analysis
+    // Use original image since it's already the right size (1024x1024)
+    $imagePath = $outputDir . '/surreal_landscape_original.png';
+    if (!file_exists($imagePath)) {
+        throw new Exception("Original image not found at: $imagePath");
+    }
+
+    // Read the image
+    $imageData = base64_encode(file_get_contents($imagePath));
+    
     $technicalAnalysis = $venice->createChatCompletion([
         [
             'role' => 'system',
-            'content' => 'You are an expert in digital art and image analysis. 
-                         Analyze images in terms of composition, technique, and artistic elements.'
+            'content' => 'You are an expert in digital art and image analysis.
+                          Analyze images in terms of composition, technique, and artistic elements.'
         ],
         [
             'role' => 'user',
-            'content' => 'Analyze this AI-generated image of a surreal landscape with floating islands. 
-                         Focus on the technical aspects of the generation, including how well the 
-                         upscaling worked and the effectiveness of the chosen style preset.'
+            'content' => [
+                [
+                    'type' => 'text',
+                    'text' => 'Analyze this AI-generated image of a surreal landscape with floating islands.
+                              Focus on the technical aspects of the generation, including how well the
+                              upscaling worked and the effectiveness of the chosen style preset.'
+                ],
+                [
+                    'type' => 'image_url',
+                    'image_url' => [
+                        'url' => 'data:image/png;base64,' . $imageData
+                    ]
+                ]
+            ]
         ]
-    ], 'default', [
+    ], 'qwen-2.5-vl', [
         'temperature' => 0.7,
         'max_completion_tokens' => 300
     ]);
 
     printResponse($technicalAnalysis['choices'][0]['message']['content'], "Technical Analysis");
 
-    // Then, get a creative interpretation
+    // Then, get a creative interpretation using the same image
     $creativeAnalysis = $venice->createChatCompletion([
         [
             'role' => 'system',
-            'content' => 'You are a creative writer and art critic. 
-                         Describe images in an engaging, narrative style.'
+            'content' => 'You are a creative writer and art critic.
+                          Describe images in an engaging, narrative style.'
         ],
         [
             'role' => 'user',
-            'content' => 'Tell a story inspired by this surreal landscape. 
-                         What mysteries might exist in these floating islands? 
-                         What kind of world is this?'
+            'content' => [
+                [
+                    'type' => 'text',
+                    'text' => 'Tell a story inspired by this surreal landscape.
+                              What mysteries might exist in these floating islands?
+                              What kind of world is this?'
+                ],
+                [
+                    'type' => 'image_url',
+                    'image_url' => [
+                        'url' => 'data:image/png;base64,' . $imageData
+                    ]
+                ]
+            ]
         ]
-    ], 'default', [
+    ], 'qwen-2.5-vl', [
         'temperature' => 0.9,
         'max_completion_tokens' => 300
     ]);
