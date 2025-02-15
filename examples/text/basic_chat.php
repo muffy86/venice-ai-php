@@ -12,11 +12,15 @@
  */
 
 require_once __DIR__ . '/../../VeniceAI.php';
+require_once __DIR__ . '/../utils.php';
+$config = require_once __DIR__ . '/../config.php';
 
 // Initialize the Venice AI client
-$venice = new VeniceAI('qmiRR9vbf18QlgLJhaXLlIutf0wJuzdUgPr24dcBtD', true);
+$venice = new VeniceAI($config['api_key'], true);
 
 try {
+    printSection("Basic Chat Example");
+
     // Create a simple chat completion
     // This is the most basic way to get a response from the AI
     $response = $venice->createChatCompletion([
@@ -30,11 +34,11 @@ try {
     // in the actual message content
     $answer = $response['choices'][0]['message']['content'];
     
-    echo "Question: What is artificial intelligence?\n";
-    echo "Answer: $answer\n";
+    printResponse("Question: What is artificial intelligence?");
+    printResponse($answer, "Answer");
 
     // You can also have a multi-turn conversation
-    echo "\nLet's have a follow-up question...\n";
+    printSection("Follow-up Question");
     
     $response = $venice->createChatCompletion([
         [
@@ -51,8 +55,8 @@ try {
         ]
     ]);
 
-    echo "\nQuestion: What are some real-world applications of AI?\n";
-    echo "Answer: " . $response['choices'][0]['message']['content'] . "\n";
+    printResponse("Question: What are some real-world applications of AI?");
+    printResponse($response['choices'][0]['message']['content'], "Answer");
 
 } catch (Exception $e) {
     echo "Error: " . $e->getMessage() . "\n";
@@ -60,7 +64,7 @@ try {
 }
 
 // Output usage tips
-echo "\nUsage Tips:\n";
+printSection("Usage Tips");
 echo "- Each message must have a 'role' and 'content'\n";
 echo "- Roles can be: 'user', 'assistant', or 'system'\n";
 echo "- Include previous messages for context in multi-turn conversations\n";

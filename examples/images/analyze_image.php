@@ -6,32 +6,21 @@
  * 1. Generate an image
  * 2. Use Qwen's multimodal capabilities to analyze the image
  * 3. Process and display the analysis results
- * 
- * Debug Options:
- * --debug (-d): Show detailed HTTP output
  */
 
 require_once __DIR__ . '/../../VeniceAI.php';
-
-// Parse command line arguments for debug mode
-$debug = in_array('--debug', $argv) || in_array('-d', $argv);
+require_once __DIR__ . '/../utils.php';
+$config = require_once __DIR__ . '/../config.php';
 
 // Initialize the Venice AI client
-$venice = new VeniceAI($debug);
+$venice = new VeniceAI($config['api_key'], true);
 
-// Create output directory if it doesn't exist
-$outputDir = __DIR__ . '/output';
-if (!file_exists($outputDir)) {
-    if (!mkdir($outputDir, 0777, true)) {
-        die("Failed to create output directory: $outputDir\n");
-    }
-    echo "Created output directory: $outputDir\n";
-}
+// Ensure output directory exists
+$outputDir = ensureOutputDirectory(__DIR__ . '/output');
 
 try {
     // Step 1: Generate a test image
-    echo "Step 1: Generating Test Image\n";
-    echo str_repeat("-", 50) . "\n";
+    printSection("Step 1: Generating Test Image");
     
     $response = $venice->generateImage([
         'model' => 'fluently-xl',
@@ -40,20 +29,18 @@ try {
         'height' => 1024
     ]);
 
-    if (!isset($response['data'])) {
+    if (!isset($response['data'][0]['b64_json'])) {
         throw new Exception("Image generation failed");
     }
 
     // Save the generated image
-    $imagePath = $outputDir . '/test_image.png';
-    if (!file_put_contents($imagePath, base64_decode($response['data']))) {
-        throw new Exception("Failed to save image to: $imagePath");
-    }
-    echo "Generated image saved to: $imagePath\n";
+    $imagePath = saveImage(
+        $response['data'][0]['b64_json'],
+        $outputDir . '/test_image.png'
+    );
 
     // Step 2: Analyze the image with Qwen
-    echo "\nStep 2: Analyzing Image with Qwen\n";
-    echo str_repeat("-", 50) . "\n";
+    printSection("Step 2: Analyzing Image with Qwen");
 
     // Read and encode the image
     $imageData = file_get_contents($imagePath);
@@ -69,9 +56,8 @@ try {
     ];
 
     foreach ($prompts as $index => $prompt) {
-        echo "\nAnalysis " . ($index + 1) . ":\n";
-        echo "Question: $prompt\n";
-        echo "Response:\n";
+        printSection("Analysis " . ($index + 1));
+        printResponse("Question: $prompt");
 
         // Send to Qwen for analysis
         $analysisResponse = $venice->createChatCompletion([
@@ -93,12 +79,10 @@ try {
         ], 'qwen-2.5-vl');
 
         if (isset($analysisResponse['choices'][0]['message']['content'])) {
-            echo $analysisResponse['choices'][0]['message']['content'] . "\n";
+            printResponse($analysisResponse['choices'][0]['message']['content'], "Response");
         } else {
-            echo "Failed to get analysis response\n";
+            printResponse("Failed to get analysis response", "Error");
         }
-        
-        echo str_repeat("-", 50) . "\n";
     }
 
 } catch (Exception $e) {
@@ -107,12 +91,10 @@ try {
 }
 
 // Output tips
-echo "\nImage Analysis Tips:\n";
+printSection("Image Analysis Tips");
 echo "- Provide clear, high-quality images for best results\n";
 echo "- Ask specific questions about what you want to analyze\n";
 echo "- Consider different aspects like composition, color, style\n";
 echo "- Use the analysis for content verification or description\n";
 echo "- Try different prompts to get varied perspectives\n";
 echo "- Compare analyses to understand the image better\n";
-echo "\nDebug Options:\n";
-echo "- --debug (-d): Show detailed HTTP output\n";

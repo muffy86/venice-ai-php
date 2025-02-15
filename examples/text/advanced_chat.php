@@ -14,14 +14,15 @@
  */
 
 require_once __DIR__ . '/../../VeniceAI.php';
+require_once __DIR__ . '/../utils.php';
+$config = require_once __DIR__ . '/../config.php';
 
 // Initialize the Venice AI client
-$venice = new VeniceAI('qmiRR9vbf18QlgLJhaXLlIutf0wJuzdUgPr24dcBtD', true);
+$venice = new VeniceAI($config['api_key'], true);
 
 try {
     // Example 1: Using system message and temperature
-    echo "Example 1: System Message and Temperature\n";
-    echo str_repeat("-", 50) . "\n";
+    printSection("Example 1: System Message and Temperature");
     
     $response = $venice->createChatCompletion(
         [
@@ -42,12 +43,10 @@ try {
         ]
     );
     
-    echo "Response with temperature 0.7:\n";
-    echo $response['choices'][0]['message']['content'] . "\n\n";
+    printResponse($response['choices'][0]['message']['content'], "Response with temperature 0.7");
 
     // Example 2: Using penalties to control repetition
-    echo "Example 2: Using Penalties\n";
-    echo str_repeat("-", 50) . "\n";
+    printSection("Example 2: Using Penalties");
     
     $response = $venice->createChatCompletion(
         [
@@ -64,12 +63,10 @@ try {
         ]
     );
     
-    echo "Response with penalties:\n";
-    echo $response['choices'][0]['message']['content'] . "\n\n";
+    printResponse($response['choices'][0]['message']['content'], "Response with penalties");
 
     // Example 3: Using Venice parameters and stop sequences
-    echo "Example 3: Venice Parameters and Stop Sequences\n";
-    echo str_repeat("-", 50) . "\n";
+    printSection("Example 3: Venice Parameters and Stop Sequences");
     
     $response = $venice->createChatCompletion(
         [
@@ -89,8 +86,7 @@ try {
         ]
     );
     
-    echo "Response with custom parameters:\n";
-    echo $response['choices'][0]['message']['content'] . "\n";
+    printResponse($response['choices'][0]['message']['content'], "Response with custom parameters");
 
 } catch (Exception $e) {
     echo "Error: " . $e->getMessage() . "\n";
@@ -98,13 +94,14 @@ try {
 }
 
 // Output parameter explanations
-echo "\nParameter Guide:\n";
+printSection("Parameter Guide");
 echo "temperature: Controls randomness (0.0 - 2.0)\n";
 echo "top_p: Alternative to temperature, controls token selection\n";
 echo "frequency_penalty: Reduces token repetition (-2.0 - 2.0)\n";
 echo "presence_penalty: Encourages new topics (-2.0 - 2.0)\n";
 echo "max_completion_tokens: Limits response length\n";
 echo "stop: Array of sequences where generation should stop\n";
-echo "\nVenice Parameters:\n";
+
+printSection("Venice Parameters");
 echo "include_venice_system_prompt: Include default system prompt\n";
 echo "character_slug: Use predefined character personalities\n";

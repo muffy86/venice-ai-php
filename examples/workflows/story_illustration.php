@@ -13,21 +13,18 @@
  */
 
 require_once __DIR__ . '/../../VeniceAI.php';
+require_once __DIR__ . '/../utils.php';
+$config = require_once __DIR__ . '/../config.php';
 
 // Initialize the Venice AI client
-$venice = new VeniceAI('qmiRR9vbf18QlgLJhaXLlIutf0wJuzdUgPr24dcBtD', true);
+$venice = new VeniceAI($config['api_key'], true);
 
-// Helper function to save base64 image
-function saveImage($base64Data, $filename) {
-    $imageData = base64_decode($base64Data);
-    file_put_contents($filename, $imageData);
-    echo "Image saved as: $filename\n";
-}
+// Ensure output directory exists
+$outputDir = ensureOutputDirectory(__DIR__ . '/output');
 
 try {
     // Step 1: Generate a short story
-    echo "Step 1: Generating Story\n";
-    echo str_repeat("-", 50) . "\n";
+    printSection("Step 1: Generating Story");
     
     $storyResponse = $venice->createChatCompletion([
         [
@@ -48,11 +45,10 @@ try {
     ]);
 
     $story = $storyResponse['choices'][0]['message']['content'];
-    echo "Generated Story:\n$story\n\n";
+    printResponse($story, "Generated Story");
     
     // Step 2: Extract key scenes for illustration
-    echo "\nStep 2: Identifying Key Scenes\n";
-    echo str_repeat("-", 50) . "\n";
+    printSection("Step 2: Identifying Key Scenes");
     
     $sceneResponse = $venice->createChatCompletion([
         [
@@ -73,13 +69,11 @@ try {
     $scenes = json_decode($sceneResponse['choices'][0]['message']['content'], true);
     
     // Step 3: Generate illustrations for each scene
-    echo "\nStep 3: Generating Illustrations\n";
-    echo str_repeat("-", 50) . "\n";
+    printSection("Step 3: Generating Illustrations");
     
     foreach ($scenes as $index => $scene) {
-        echo "\nGenerating illustration for scene " . ($index + 1) . ":\n";
-        echo "Scene: " . $scene['scene'] . "\n";
-        echo "Prompt: " . $scene['prompt'] . "\n";
+        printResponse("Scene " . ($index + 1) . ":\n" . $scene['scene']);
+        printResponse("Prompt: " . $scene['prompt']);
         
         // Generate the illustration
         $imageResponse = $venice->generateImage([
@@ -94,9 +88,9 @@ try {
 
         if (isset($imageResponse['data'][0]['b64_json'])) {
             // Save the illustration
-            saveImage(
+            $imagePath = saveImage(
                 $imageResponse['data'][0]['b64_json'],
-                __DIR__ . "/story_scene_" . ($index + 1) . ".png"
+                $outputDir . "/story_scene_" . ($index + 1) . ".png"
             );
             
             // Optional: Upscale the illustration
@@ -109,7 +103,7 @@ try {
             
             saveImage(
                 $upscaledResponse['data'][0]['b64_json'],
-                __DIR__ . "/story_scene_" . ($index + 1) . "_upscaled.png"
+                $outputDir . "/story_scene_" . ($index + 1) . "_upscaled.png"
             );
             
             unlink($tempFile);
@@ -117,8 +111,7 @@ try {
     }
 
     // Step 4: Save the complete story with scene markers
-    echo "\nStep 4: Saving Complete Story\n";
-    echo str_repeat("-", 50) . "\n";
+    printSection("Step 4: Saving Complete Story");
     
     $storyWithMarkers = $story . "\n\n";
     $storyWithMarkers .= "Scene Illustrations:\n";
@@ -128,8 +121,8 @@ try {
         $storyWithMarkers .= "Illustration: story_scene_" . ($index + 1) . "_upscaled.png\n";
     }
     
-    file_put_contents(__DIR__ . '/illustrated_story.txt', $storyWithMarkers);
-    echo "Complete story saved to 'illustrated_story.txt'\n";
+    file_put_contents($outputDir . '/illustrated_story.txt', $storyWithMarkers);
+    printResponse("Complete story saved to 'output/illustrated_story.txt'");
 
 } catch (Exception $e) {
     echo "Error: " . $e->getMessage() . "\n";
@@ -137,7 +130,7 @@ try {
 }
 
 // Output workflow insights
-echo "\nWorkflow Insights:\n";
+printSection("Workflow Insights");
 echo "1. Start with well-structured text generation\n";
 echo "2. Use AI to identify key visual moments\n";
 echo "3. Maintain consistent style across illustrations\n";
@@ -145,7 +138,7 @@ echo "4. Consider upscaling for final quality\n";
 echo "5. Organize output for easy assembly\n";
 
 // Output practical applications
-echo "\nPractical Applications:\n";
+printSection("Practical Applications");
 echo "- Children's book creation\n";
 echo "- Educational content development\n";
 echo "- Marketing material generation\n";

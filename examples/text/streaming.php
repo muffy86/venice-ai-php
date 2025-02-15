@@ -14,13 +14,14 @@
  */
 
 require_once __DIR__ . '/../../VeniceAI.php';
+require_once __DIR__ . '/../utils.php';
+$config = require_once __DIR__ . '/../config.php';
 
 // Initialize the Venice AI client
-$venice = new VeniceAI('qmiRR9vbf18QlgLJhaXLlIutf0wJuzdUgPr24dcBtD', true);
+$venice = new VeniceAI($config['api_key'], true);
 
 try {
-    echo "Starting streaming response...\n";
-    echo str_repeat("-", 50) . "\n";
+    printSection("Example 1: Basic Streaming");
 
     // Create a streaming chat completion
     $response = $venice->createChatCompletion(
@@ -38,33 +39,14 @@ try {
         ]
     );
 
-    // In streaming mode, we get multiple chunks of data
-    // Each chunk contains a piece of the response
-    $fullResponse = '';
-    
-    // Process each chunk as it arrives
-    foreach ($response as $chunk) {
-        if (isset($chunk['choices'][0]['message']['content'])) {
-            $text = $chunk['choices'][0]['message']['content'];
-            echo $text;  // Print each piece as it arrives
-            $fullResponse .= $text;
-            
-            // Flush output buffer to show text immediately
-            ob_flush();
-            flush();
-            
-            // Simulate processing delay
-            usleep(100000);  // 100ms delay
-        }
-    }
+    // Process the streaming response
+    $fullResponse = handleStreamingResponse($response);
 
-    echo "\n\nFull response received:\n";
-    echo str_repeat("-", 50) . "\n";
+    printSection("Full Response Received");
     echo $fullResponse . "\n";
 
     // Example 2: Streaming with a progress counter
-    echo "\nExample 2: Streaming with progress\n";
-    echo str_repeat("-", 50) . "\n";
+    printSection("Example 2: Streaming with Progress");
 
     $response = $venice->createChatCompletion(
         [
@@ -80,23 +62,19 @@ try {
     $factCount = 0;
     $currentFact = '';
     
-    foreach ($response as $chunk) {
-        if (isset($chunk['choices'][0]['message']['content'])) {
-            $text = $chunk['choices'][0]['message']['content'];
-            $currentFact .= $text;
-            
-            // Check if we've received a complete fact
-            if (strpos($text, "\n") !== false) {
-                $factCount++;
-                echo "Fact $factCount received...\n";
-                $currentFact = '';
-            }
-            
-            echo $text;
-            ob_flush();
-            flush();
+    // Custom progress callback for fact counting
+    $progressCallback = function($text) use (&$factCount, &$currentFact) {
+        $currentFact .= $text;
+        
+        // Check if we've received a complete fact
+        if (strpos($text, "\n") !== false) {
+            $factCount++;
+            echo "\nFact $factCount received...\n";
+            $currentFact = '';
         }
-    }
+    };
+
+    handleStreamingResponse($response, $progressCallback);
 
 } catch (Exception $e) {
     echo "Error: " . $e->getMessage() . "\n";
@@ -104,7 +82,7 @@ try {
 }
 
 // Output streaming tips
-echo "\nStreaming Tips:\n";
+printSection("Streaming Tips");
 echo "- Use stream=true in options to enable streaming\n";
 echo "- Process each chunk as it arrives\n";
 echo "- Remember to flush output for real-time display\n";

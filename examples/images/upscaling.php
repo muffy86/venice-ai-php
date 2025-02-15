@@ -35,47 +35,21 @@
  */
 
 require_once __DIR__ . '/../../VeniceAI.php';
-
-// Parse command line arguments for debug mode
-$debug = in_array('--debug', $argv) || in_array('-d', $argv);
+require_once __DIR__ . '/../utils.php';
+$config = require_once __DIR__ . '/../config.php';
 
 // Initialize the Venice AI client
-$venice = new VeniceAI($debug);
+$venice = new VeniceAI($config['api_key'], true);
 
-// Create output directory if it doesn't exist
-$outputDir = __DIR__ . '/output';
-if (!file_exists($outputDir)) {
-    if (!mkdir($outputDir, 0777, true)) {
-        die("Failed to create output directory: $outputDir\n");
-    }
-    echo "Created output directory: $outputDir\n";
-}
-
-// Helper function to save image data
-function saveImage($imageData, $filename) {
-    // Check if data is base64 encoded
-    if (preg_match('/^[a-zA-Z0-9\/\r\n+]*={0,2}$/', $imageData)) {
-        $imageData = base64_decode($imageData);
-    }
-    
-    if (!$imageData) {
-        throw new Exception("Failed to process image data");
-    }
-    
-    if (file_put_contents($filename, $imageData) === false) {
-        throw new Exception("Failed to save image to: $filename");
-    }
-    
-    echo "Image saved as: $filename\n";
-}
+// Ensure output directory exists
+$outputDir = ensureOutputDirectory(__DIR__ . '/output');
 
 try {
     // Example 1: Basic 2x upscaling with base64 response
-    echo "Example 1: Basic 2x Upscaling (base64 response)\n";
-    echo str_repeat("-", 50) . "\n";
+    printSection("Example 1: Basic 2x Upscaling (base64 response)");
     
     // First generate a test image
-    echo "Generating initial image...\n";
+    printResponse("Generating initial image...");
     $response = $venice->generateImage([
         'model' => 'fluently-xl',
         'prompt' => 'A simple geometric pattern with circles and squares',
@@ -85,36 +59,34 @@ try {
         'cfg_scale' => 7.5  // Default guidance scale
     ]);
 
-    if (isset($response['data'])) {
+    if (isset($response['data'][0]['b64_json'])) {
         // Save the original image
-        saveImage(
-            $response['data'],
+        $imagePath = saveImage(
+            $response['data'][0]['b64_json'],
             $outputDir . '/pattern_original.png'
         );
         
-        echo "Upscaling with 2x scale (base64 response)...\n";
+        printResponse("Upscaling with 2x scale (base64 response)...");
         $upscaledResponse = $venice->upscaleImage([
-            'image' => $outputDir . '/pattern_original.png',
+            'image' => $imagePath,
             'scale' => '2',  // Must be string "2" or "4"
             'return_binary' => false  // Get base64 response
         ]);
         
         // Save the upscaled result
-        if (isset($upscaledResponse['data'])) {
+        if (isset($upscaledResponse['data'][0]['b64_json'])) {
             saveImage(
-                $upscaledResponse['data'],
+                $upscaledResponse['data'][0]['b64_json'],
                 $outputDir . '/pattern_upscaled_2x.png'
             );
         }
     }
 
     // Example 2: 4x upscaling with binary response
-    echo "\nExample 2: 4x Upscaling (binary response)\n";
-    echo str_repeat("-", 50) . "\n";
+    printSection("Example 2: 4x Upscaling (binary response)");
     
-    $imagePath = $outputDir . '/pattern_original.png';
     if (file_exists($imagePath)) {
-        echo "Upscaling with 4x scale (binary response)...\n";
+        printResponse("Upscaling with 4x scale (binary response)...");
         try {
             $response = $venice->upscaleImage([
                 'image' => $imagePath,
@@ -122,64 +94,61 @@ try {
                 'return_binary' => true  // Get binary response
             ]);
             
-            if (isset($response['data'])) {
+            if (isset($response['data'][0]['b64_json'])) {
                 saveImage(
-                    $response['data'],
+                    $response['data'][0]['b64_json'],
                     $outputDir . '/pattern_upscaled_4x.png'
                 );
             }
         } catch (Exception $e) {
-            echo "Upscaling error: " . $e->getMessage() . "\n";
+            printResponse("Upscaling error: " . $e->getMessage(), "Error");
         }
     } else {
-        echo "Error: Source image not found.\n";
+        printResponse("Error: Source image not found.", "Error");
     }
 
     // Example 3: Error handling - invalid scale value
-    echo "\nExample 3: Error Handling - Invalid Scale\n";
-    echo str_repeat("-", 50) . "\n";
+    printSection("Example 3: Error Handling - Invalid Scale");
     
     try {
         $venice->upscaleImage([
-            'image' => $outputDir . '/pattern_original.png',
+            'image' => $imagePath,
             'scale' => '3'  // Invalid scale value
         ]);
     } catch (InvalidArgumentException $e) {
-        echo "Expected error caught: Scale must be '2' or '4'\n";
+        printResponse("Expected error caught: Scale must be '2' or '4'");
     }
 
     // Example 4: Error handling - file too large
-    echo "\nExample 4: Error Handling - File Size\n";
-    echo str_repeat("-", 50) . "\n";
+    printSection("Example 4: Error Handling - File Size");
     
     try {
         // This would trigger a 413 error if file > 5MB
-        if (filesize($outputDir . '/pattern_original.png') > 5 * 1024 * 1024) {
+        if (filesize($imagePath) > 5 * 1024 * 1024) {
             throw new Exception("File too large (max 5MB)");
         } else {
-            echo "File size check passed (under 5MB)\n";
+            printResponse("File size check passed (under 5MB)");
         }
     } catch (Exception $e) {
-        echo "Expected error caught: " . $e->getMessage() . "\n";
+        printResponse("Expected error caught: " . $e->getMessage());
     }
 
     // Example 5: Error handling - wrong file type
-    echo "\nExample 5: Error Handling - File Type\n";
-    echo str_repeat("-", 50) . "\n";
+    printSection("Example 5: Error Handling - File Type");
     
     try {
         // This would trigger a 415 error if not PNG
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
-        $mimeType = finfo_file($finfo, $outputDir . '/pattern_original.png');
+        $mimeType = finfo_file($finfo, $imagePath);
         finfo_close($finfo);
         
         if ($mimeType !== 'image/png') {
             throw new Exception("Invalid file type (must be PNG)");
         } else {
-            echo "File type check passed (is PNG)\n";
+            printResponse("File type check passed (is PNG)");
         }
     } catch (Exception $e) {
-        echo "Expected error caught: " . $e->getMessage() . "\n";
+        printResponse("Expected error caught: " . $e->getMessage());
     }
 
 } catch (Exception $e) {
@@ -188,31 +157,34 @@ try {
 }
 
 // Output comprehensive tips
-echo "\nUpscaling Parameters:\n";
+printSection("Upscaling Parameters");
 echo "1. Required:\n";
 echo "   • image: PNG file to upscale (max 5MB)\n";
 echo "   • scale: Must be '2' or '4' (as string)\n";
-echo "\n2. Optional:\n";
+
+printSection("Optional Parameters");
 echo "   • return_binary: true for raw data, false for base64\n";
-echo "\n3. Technical Requirements:\n";
+
+printSection("Technical Requirements");
 echo "   • Content-Type: multipart/form-data\n";
 echo "   • File format: PNG only\n";
 echo "   • Maximum size: 5MB\n";
-echo "\n4. Response Headers:\n";
+
+printSection("Response Headers");
 echo "   • x-ratelimit-limit-requests: Your rate limit\n";
 echo "   • x-ratelimit-remaining-requests: Requests left\n";
 echo "   • x-ratelimit-reset-requests: Reset timestamp\n";
-echo "\n5. Best Practices:\n";
+
+printSection("Best Practices");
 echo "   • Verify file type before uploading\n";
 echo "   • Check file size before uploading\n";
 echo "   • Monitor rate limits in response headers\n";
 echo "   • Use return_binary=true for efficiency\n";
 echo "   • Clean up temporary files\n";
 echo "   • Validate upscaled results\n";
-echo "\n6. Common Use Cases:\n";
+
+printSection("Common Use Cases");
 echo "   • Enhance AI-generated images\n";
 echo "   • Prepare images for printing\n";
 echo "   • Create high-resolution versions\n";
 echo "   • Batch process multiple images\n";
-echo "\n7. Debug Options:\n";
-echo "   • --debug (-d): Show detailed HTTP output\n";

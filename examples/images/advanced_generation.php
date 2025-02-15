@@ -14,25 +14,22 @@
  */
 
 require_once __DIR__ . '/../../VeniceAI.php';
+require_once __DIR__ . '/../utils.php';
+$config = require_once __DIR__ . '/../config.php';
 
 // Initialize the Venice AI client
-$venice = new VeniceAI('qmiRR9vbf18QlgLJhaXLlIutf0wJuzdUgPr24dcBtD', true);
+$venice = new VeniceAI($config['api_key'], true);
 
-// Helper function to save base64 image
-function saveImage($base64Data, $filename) {
-    $imageData = base64_decode($base64Data);
-    file_put_contents($filename, $imageData);
-    echo "Image saved as: $filename\n";
-}
+// Ensure output directory exists
+$outputDir = ensureOutputDirectory(__DIR__ . '/output');
 
 try {
     // Example 1: Using style presets
-    echo "Example 1: Style Presets\n";
-    echo str_repeat("-", 50) . "\n";
+    printSection("Example 1: Style Presets");
     
     // First, let's see available styles
     $styles = $venice->getImageStyles();
-    echo "Available styles: " . implode(", ", $styles['data']) . "\n\n";
+    printResponse("Available styles: " . implode(", ", $styles['data']));
     
     // Generate image with specific style
     $response = $venice->generateImage([
@@ -47,13 +44,12 @@ try {
     if (isset($response['data'][0]['b64_json'])) {
         saveImage(
             $response['data'][0]['b64_json'],
-            __DIR__ . '/cyberpunk.png'
+            $outputDir . '/cyberpunk.png'
         );
     }
 
     // Example 2: Using negative prompts and cfg_scale
-    echo "\nExample 2: Negative Prompts and CFG Scale\n";
-    echo str_repeat("-", 50) . "\n";
+    printSection("Example 2: Negative Prompts and CFG Scale");
     
     $response = $venice->generateImage([
         'model' => 'fluently-xl',
@@ -68,13 +64,12 @@ try {
     if (isset($response['data'][0]['b64_json'])) {
         saveImage(
             $response['data'][0]['b64_json'],
-            __DIR__ . '/warrior.png'
+            $outputDir . '/warrior.png'
         );
     }
 
     // Example 3: Reproducible generation with seed
-    echo "\nExample 3: Reproducible Generation\n";
-    echo str_repeat("-", 50) . "\n";
+    printSection("Example 3: Reproducible Generation");
     
     $seed = 12345;  // Fixed seed for reproducibility
     
@@ -92,14 +87,13 @@ try {
         if (isset($response['data'][0]['b64_json'])) {
             saveImage(
                 $response['data'][0]['b64_json'],
-                __DIR__ . "/crystal_$i.png"
+                $outputDir . "/crystal_$i.png"
             );
         }
     }
 
     // Example 4: Safety and watermark options
-    echo "\nExample 4: Safety and Watermark Options\n";
-    echo str_repeat("-", 50) . "\n";
+    printSection("Example 4: Safety and Watermark Options");
     
     $response = $venice->generateImage([
         'model' => 'fluently-xl',
@@ -114,7 +108,7 @@ try {
     if (isset($response['data'][0]['b64_json'])) {
         saveImage(
             $response['data'][0]['b64_json'],
-            __DIR__ . '/watch.png'
+            $outputDir . '/watch.png'
         );
     }
 
@@ -124,7 +118,7 @@ try {
 }
 
 // Output advanced tips
-echo "\nAdvanced Generation Tips:\n";
+printSection("Advanced Generation Tips");
 echo "- Style presets help achieve consistent looks\n";
 echo "- Negative prompts help avoid unwanted elements\n";
 echo "- Higher cfg_scale makes images match prompts more closely\n";
@@ -134,7 +128,7 @@ echo "- safe_mode helps filter inappropriate content\n";
 echo "- hide_watermark controls Venice branding\n";
 
 // Output parameter ranges
-echo "\nParameter Ranges:\n";
+printSection("Parameter Ranges");
 echo "steps: 1-50 (default: 30)\n";
 echo "cfg_scale: typically 1-20 (default varies by model)\n";
 echo "width/height: typically 512-1024 pixels\n";

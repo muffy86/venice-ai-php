@@ -12,21 +12,18 @@
  */
 
 require_once __DIR__ . '/../../VeniceAI.php';
+require_once __DIR__ . '/../utils.php';
+$config = require_once __DIR__ . '/../config.php';
 
 // Initialize the Venice AI client
-$venice = new VeniceAI('qmiRR9vbf18QlgLJhaXLlIutf0wJuzdUgPr24dcBtD', true);
+$venice = new VeniceAI($config['api_key'], true);
 
-// Helper function to save base64 image
-function saveImage($base64Data, $filename) {
-    $imageData = base64_decode($base64Data);
-    file_put_contents($filename, $imageData);
-    echo "Image saved as: $filename\n";
-}
+// Ensure output directory exists
+$outputDir = ensureOutputDirectory(__DIR__ . '/output');
 
 try {
     // Step 1: Generate an artistic image
-    echo "Step 1: Generating Initial Image\n";
-    echo str_repeat("-", 50) . "\n";
+    printSection("Step 1: Generating Initial Image");
     
     $response = $venice->generateImage([
         'model' => 'fluently-xl',
@@ -48,12 +45,11 @@ try {
     // Save the original image
     saveImage(
         $response['data'][0]['b64_json'],
-        __DIR__ . '/surreal_landscape_original.png'
+        $outputDir . '/surreal_landscape_original.png'
     );
     
     // Step 2: Upscale the generated image
-    echo "\nStep 2: Upscaling Image\n";
-    echo str_repeat("-", 50) . "\n";
+    printSection("Step 2: Upscaling Image");
     
     // Create temporary file for upscaling
     $tempFile = tempnam(sys_get_temp_dir(), 'venice_');
@@ -66,14 +62,13 @@ try {
     // Save the upscaled result
     saveImage(
         $upscaledResponse['data'][0]['b64_json'],
-        __DIR__ . '/surreal_landscape_upscaled.png'
+        $outputDir . '/surreal_landscape_upscaled.png'
     );
     
     unlink($tempFile);  // Clean up temp file
 
     // Step 3: Analyze the image using AI
-    echo "\nStep 3: AI Analysis of the Image\n";
-    echo str_repeat("-", 50) . "\n";
+    printSection("Step 3: AI Analysis of the Image");
     
     // First, get a technical analysis
     $technicalAnalysis = $venice->createChatCompletion([
@@ -93,8 +88,7 @@ try {
         'max_completion_tokens' => 300
     ]);
 
-    echo "Technical Analysis:\n";
-    echo $technicalAnalysis['choices'][0]['message']['content'] . "\n\n";
+    printResponse($technicalAnalysis['choices'][0]['message']['content'], "Technical Analysis");
 
     // Then, get a creative interpretation
     $creativeAnalysis = $venice->createChatCompletion([
@@ -114,8 +108,7 @@ try {
         'max_completion_tokens' => 300
     ]);
 
-    echo "Creative Interpretation:\n";
-    echo $creativeAnalysis['choices'][0]['message']['content'] . "\n";
+    printResponse($creativeAnalysis['choices'][0]['message']['content'], "Creative Interpretation");
 
 } catch (Exception $e) {
     echo "Error: " . $e->getMessage() . "\n";
@@ -123,7 +116,7 @@ try {
 }
 
 // Output workflow insights
-echo "\nWorkflow Insights:\n";
+printSection("Workflow Insights");
 echo "1. Start with high-quality generation parameters\n";
 echo "2. Use upscaling to enhance details\n";
 echo "3. Leverage AI for both technical and creative analysis\n";
@@ -131,7 +124,7 @@ echo "4. Consider the workflow as a pipeline where each step builds on the previ
 echo "5. Save intermediate results for comparison and backup\n";
 
 // Output practical applications
-echo "\nPractical Applications:\n";
+printSection("Practical Applications");
 echo "- Art generation and critique\n";
 echo "- Content creation workflows\n";
 echo "- Educational tools for art analysis\n";
