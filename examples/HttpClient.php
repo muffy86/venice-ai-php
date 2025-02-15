@@ -31,24 +31,29 @@ class HttpClient {
             $headersList[] = "$key: $value";
         }
 
-        // Set up CURL options
+        // Set up CURL options with debug settings
         $options = [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_HTTPHEADER => $headersList,
             CURLOPT_CUSTOMREQUEST => $method,
             CURLOPT_TIMEOUT => 30,
-            CURLOPT_VERBOSE => $debug,
-            CURLOPT_HEADER => false
+            CURLOPT_HEADER => false,
+            CURLOPT_VERBOSE => $debug
         ];
 
-        // Set debug handle and output debug info
+        // Set debug handle if in debug mode
         if ($debug) {
             $options[CURLOPT_STDERR] = $debugHandle;
+        }
 
-            // Show our formatted debug output
+        // Show our formatted debug output
+        if ($debug) {
             echo "\nRequest URL: " . $url . "\n";
             echo "Method: " . $method . "\n";
-            echo "Headers: " . json_encode($headers, JSON_PRETTY_PRINT) . "\n";
+            echo "Headers:\n";
+            foreach ($headers as $key => $value) {
+                echo "$key: $value\n";
+            }
             if (!empty($data)) {
                 require_once __DIR__ . '/ResponseFormatter.php';
                 $debugData = ResponseFormatter::filterDebugData($data);

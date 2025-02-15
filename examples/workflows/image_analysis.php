@@ -11,12 +11,21 @@
  * to create more sophisticated applications.
  */
 
+/**
+ * Debug mode can be enabled in two ways:
+ * 1. Pass -d as a command line argument: php image_analysis.php -d
+ * 2. Set DEBUG environment variable: DEBUG=1 php image_analysis.php
+ */
+
 require_once __DIR__ . '/../../VeniceAI.php';
 require_once __DIR__ . '/../utils.php';
-$config = require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../config.php';
 
-// Initialize the Venice AI client with debug mode enabled
-$venice = new VeniceAI($config['api_key'], true);  // Enable debug mode to see API interactions
+// Check for debug flag in command line args or environment
+$debug = in_array('-d', $argv) || (getenv('DEBUG') && getenv('DEBUG') !== '0');
+
+// Initialize the Venice AI client
+$venice = new VeniceAI($debug);
 
 // Ensure output directory exists
 $outputDir = ensureOutputDirectory(__DIR__ . '/output');
