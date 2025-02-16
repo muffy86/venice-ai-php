@@ -31,9 +31,9 @@ jobs:
       - name: Generate Documentation
         run: |
           rm -rf venice-ai-php/ _site/
-          vendor/bin/phpdoc -c phpdoc.xml
           mkdir -p _site/venice-ai-php
-          mv venice-ai-php/* _site/venice-ai-php/
+          vendor/bin/phpdoc -c phpdoc.xml
+          mv venice-ai-php/* _site/venice-ai-php/ || true
           cp index.html _site/
           echo "Site directory structure:"
           ls -la _site/
