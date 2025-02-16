@@ -13,36 +13,22 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    container:
+      image: phpdoc/phpdoc:3
     steps:
       - uses: actions/checkout@v4
       
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.2'
-          extensions: mbstring, xml, simplexml
-          coverage: none
-          tools: composer:v2, phpdoc
-
-      - name: Verify PHP Setup
-        run: |
-          php -v
-          php -m | grep -E 'mbstring|xml|simplexml'
-
-      - name: Install phpDocumentor
-        run: |
-          composer require --dev phpdocumentor/phpdocumentor
-          
       - name: Generate Documentation
         run: |
           rm -rf _site/
           mkdir -p _site
-          vendor/bin/phpdoc -c phpdoc.xml
+          phpdoc -c phpdoc.xml
           if [ -d "venice-ai-php" ]; then
             mv venice-ai-php _site/
             cp -f index.html _site/
+            chmod -R 755 _site/
             echo "Final site structure:"
-            find _site -type f
+            find _site -type f -ls
           else
             echo "Error: Documentation not generated"
             exit 1
