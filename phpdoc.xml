@@ -15,6 +15,7 @@
             <source dsn=".">
                 <path>VeniceAI.php</path>
                 <path>examples</path>
+                <path>index.html</path>
             </source>
             <ignore>
                 <path>vendor/**/*</path>
