@@ -34,7 +34,9 @@ jobs:
           mkdir -p _site/venice-ai-php
           vendor/bin/phpdoc -c phpdoc.xml
           cp -r venice-ai-php/* _site/venice-ai-php/ || true
-          cp index.html _site/
+          cp -f index.html _site/
+          echo "Final site structure:"
+          find _site -type f
           echo "Site directory structure:"
           ls -la _site/
           echo "Documentation directory contents:"
