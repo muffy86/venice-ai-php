@@ -20,8 +20,9 @@ jobs:
       
       - name: Generate Documentation
         run: |
-          rm -rf docs/
+          rm -rf venice-ai-php/
           phpdoc -c phpdoc.xml
+          cp index.html venice-ai-php/
       
       - name: Setup Pages
         uses: actions/configure-pages@v4
