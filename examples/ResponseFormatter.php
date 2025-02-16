@@ -109,22 +109,88 @@ class ResponseFormatter {
      * @param callable|null $progressCallback Optional callback for progress updates
      * @return string The full response text
      */
-    public static function handleStreamingResponse($response, $progressCallback = null) {
+    public static function handleStreamingResponse($response, $progressCallback = null, $debug = false) {
         $fullResponse = '';
         
-        foreach ($response as $chunk) {
-            if (isset($chunk['choices'][0]['message']['content'])) {
-                $text = $chunk['choices'][0]['message']['content'];
-                echo $text;
-                $fullResponse .= $text;
+        if ($debug) {
+            echo "\n[Debug] Processing streaming response...\n";
+            echo "[Debug] Response length: " . strlen($response) . " bytes\n";
+        }
+        
+        // Split response into chunks by newlines
+        $chunks = explode("\n", $response);
+        
+        if ($debug) {
+            echo "[Debug] Found " . count($chunks) . " chunks\n";
+        }
+        
+        foreach ($chunks as $i => $chunk) {
+            // Look for "data: " prefix
+            if (strpos($chunk, 'data: ') === 0) {
+                $json = substr($chunk, 6); // Remove "data: " prefix
                 
-                if ($progressCallback) {
-                    $progressCallback($text);
+                if ($debug) {
+                    echo "[Debug] Processing chunk " . ($i + 1) . ":\n";
+                    echo "[Debug] Raw chunk: " . $chunk . "\n";
                 }
                 
-                // Flush output buffer to show text immediately
-                ob_flush();
-                flush();
+                // Check for end of stream
+                if ($json === '[DONE]') {
+                    if ($debug) {
+                        echo "[Debug] End of stream marker found\n";
+                    }
+                    continue;
+                }
+                
+                // Fix malformed JSON by adding missing commas
+                $json = preg_replace('/"([^"]+)""/', '"$1","', $json);
+                $data = json_decode($json, true);
+                
+                if ($debug) {
+                    if ($data === null) {
+                        echo "[Debug] Failed to parse JSON: " . json_last_error_msg() . "\n";
+                        echo "[Debug] Attempted to parse: " . $json . "\n";
+                    } else {
+                        echo "[Debug] Successfully parsed JSON\n";
+                    }
+                }
+                if ($data && isset($data['choices'][0]['delta']['content'])) {
+                    $text = $data['choices'][0]['delta']['content'];
+                    
+                    if ($debug) {
+                        echo "\n[Debug] Content received: " . json_encode($text) . "\n";
+                        echo "[Debug] Content length: " . strlen($text) . " characters\n";
+                    }
+                    
+                    echo $text;
+                    $fullResponse .= $text;
+                    
+                    if ($progressCallback) {
+                        if ($debug) {
+                            echo "[Debug] Calling progress callback\n";
+                        }
+                        $progressCallback($text);
+                    }
+                    
+                    // Only try to flush if output buffering is active
+                    if (ob_get_level() > 0) {
+                        if ($debug) {
+                            echo "[Debug] Output buffering active (level " . ob_get_level() . ")\n";
+                        }
+                        @ob_flush();
+                    } else if ($debug) {
+                        echo "[Debug] No output buffering active\n";
+                    }
+                    @flush();
+                    
+                    if ($debug) {
+                        echo "[Debug] Output flushed\n";
+                        echo "[Debug] Current response length: " . strlen($fullResponse) . " characters\n";
+                        echo "----------------------------------------\n";
+                    }
+                } else if ($debug) {
+                    echo "[Debug] No content in delta\n";
+                }
             }
         }
         

@@ -61,15 +61,17 @@ try {
 
     $factCount = 0;
     $currentFact = '';
+    $totalFacts = 5;
     
     // Custom progress callback for fact counting
-    $progressCallback = function($text) use (&$factCount, &$currentFact) {
+    $progressCallback = function($text) use (&$factCount, &$currentFact, $totalFacts) {
         $currentFact .= $text;
         
         // Check if we've received a complete fact
         if (strpos($text, "\n") !== false) {
             $factCount++;
-            echo "\nFact $factCount received...\n";
+            $progress = ($factCount / $totalFacts) * 100;
+            echo "\nFact $factCount of $totalFacts received... (" . number_format($progress, 1) . "% complete)\n";
             $currentFact = '';
         }
     };
@@ -83,8 +85,10 @@ try {
 
 // Output streaming tips
 printSection("Streaming Tips");
-echo "- Use stream=true in options to enable streaming\n";
-echo "- Process each chunk as it arrives\n";
-echo "- Remember to flush output for real-time display\n";
-echo "- Handle partial responses appropriately\n";
-echo "- Consider implementing a progress indicator\n";
+echo "- Enable streaming by setting stream=true in your request options\n";
+echo "- Use a progress callback to track and display completion status\n";
+echo "- Handle output buffering properly to ensure real-time updates\n";
+echo "- Process partial responses as they arrive for better user experience\n";
+echo "- Consider implementing percentage-based progress indicators\n";
+echo "- Add debug mode for troubleshooting streaming issues\n";
+echo "- Remember to handle end-of-stream markers ([DONE])\n";
