@@ -22,12 +22,17 @@ jobs:
           php-version: '8.2'
           extensions: mbstring, xml
           coverage: none
-          tools: composer:v2, phpdoc
-      
+          tools: composer:v2
+
+      - name: Install phpDocumentor
+        run: |
+          composer require --dev phpdocumentor/phpdocumentor
+          
       - name: Generate Documentation
         run: |
           rm -rf venice-ai-php/
-          phpdoc -c phpdoc.xml
+          vendor/bin/phpdoc -c phpdoc.xml
+          ls -la venice-ai-php/
       
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -40,6 +45,9 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
