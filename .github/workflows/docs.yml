@@ -30,10 +30,17 @@ jobs:
           
       - name: Generate Documentation
         run: |
-          rm -rf _site/
+          rm -rf _site/ venice-ai-php/
           mkdir -p _site/venice-ai-php
           vendor/bin/phpdoc -c phpdoc.xml
-          cp -r venice-ai-php/* _site/venice-ai-php/ || true
+          if [ -d "venice-ai-php" ]; then
+            cp -r venice-ai-php/* _site/venice-ai-php/
+            echo "Documentation files:"
+            find _site/venice-ai-php -type f
+          else
+            echo "Error: Documentation not generated"
+            exit 1
+          fi
           cp -f index.html _site/
           echo "Final site structure:"
           find _site -type f
