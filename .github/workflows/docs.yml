@@ -13,10 +13,16 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-    container:
-      image: phpdoc/phpdoc:3
     steps:
       - uses: actions/checkout@v4
+      
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, xml
+          coverage: none
+          tools: composer:v2, phpdoc
       
       - name: Generate Documentation
         run: |
