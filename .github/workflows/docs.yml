@@ -40,10 +40,18 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v4
       
+      - name: Prepare deployment
+        run: |
+          mkdir -p _site
+          cp -r venice-ai-php/* _site/
+          cp index.html _site/
+          echo "Site directory contents:"
+          ls -la _site/
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: venice-ai-php
+          path: _site
           retention-days: 1
 
   deploy:
