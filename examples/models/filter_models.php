@@ -9,7 +9,6 @@
  */
 
 require_once __DIR__ . '/../../VeniceAI.php';
-require_once __DIR__ . '/../utils.php';
 $config = require_once __DIR__ . '/../config.php';
 
 // Initialize the Venice AI client
@@ -17,7 +16,7 @@ $venice = new VeniceAI($config['api_key'], true);
 
 try {
     // 1. Get text models
-    printSection("Text Models");
+    echo "\n=== Text Models ===\n\n";
     
     $textModels = $venice->listTextModels();
     foreach ($textModels['data'] as $model) {
@@ -31,11 +30,11 @@ try {
         if (isset($model['model_spec']['traits'])) {
             $modelInfo .= "\nTraits: " . implode(', ', $model['model_spec']['traits']);
         }
-        printResponse($modelInfo);
+        echo "$modelInfo\n\n";
     }
 
     // 2. Get image models
-    printSection("Image Models");
+    echo "=== Image Models ===\n\n";
     
     $imageModels = $venice->listImageModels();
     foreach ($imageModels['data'] as $model) {
@@ -45,11 +44,11 @@ try {
         if (isset($model['model_spec']['traits'])) {
             $modelInfo .= "\nTraits: " . implode(', ', $model['model_spec']['traits']);
         }
-        printResponse($modelInfo);
+        echo "$modelInfo\n\n";
     }
 
     // 3. Find models with specific traits
-    printSection("Models with 'most_intelligent' trait");
+    echo "=== Models with 'most_intelligent' trait ===\n\n";
     
     $allModels = $venice->listModels();
     foreach ($allModels['data'] as $model) {
@@ -61,7 +60,7 @@ try {
                 $model['type'],
                 implode(', ', $traits)
             );
-            printResponse($modelInfo);
+            echo "$modelInfo\n\n";
         }
     }
 
@@ -71,7 +70,7 @@ try {
 }
 
 // Output usage tips
-printSection("Usage Tips");
+echo "=== Usage Tips ===\n\n";
 echo "- Text models are best for chat and completion tasks\n";
 echo "- Image models are used for generation and manipulation\n";
 echo "- Models with 'most_intelligent' trait provide better reasoning\n";

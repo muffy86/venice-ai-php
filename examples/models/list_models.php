@@ -12,7 +12,6 @@
  */
 
 require_once __DIR__ . '/../../VeniceAI.php';
-require_once __DIR__ . '/../utils.php';
 $config = require_once __DIR__ . '/../config.php';
 
 // Initialize the Venice AI client
@@ -20,28 +19,31 @@ $venice = new VeniceAI($config['api_key'], true);
 
 try {
     // Example 1: List all models
-    printSection("Example 1: All Available Models");
+    echo "\n=== Example 1: All Available Models ===\n\n";
     
     $models = $venice->listModels();
     foreach ($models['data'] as $model) {
-        printResponse("• {$model['id']}");
+        echo "• {$model['id']}\n";
     }
+    echo "\n";
 
     // Example 2: List text models only
-    printSection("Example 2: Text Models Only");
+    echo "=== Example 2: Text Models Only ===\n\n";
     
     $textModels = $venice->listTextModels();
     foreach ($textModels['data'] as $model) {
-        printResponse("• {$model['id']}");
+        echo "• {$model['id']}\n";
     }
+    echo "\n";
 
     // Example 3: List image models only
-    printSection("Example 3: Image Models Only");
+    echo "=== Example 3: Image Models Only ===\n\n";
     
     $imageModels = $venice->listImageModels();
     foreach ($imageModels['data'] as $model) {
-        printResponse("• {$model['id']}");
+        echo "• {$model['id']}\n";
     }
+    echo "\n";
 
 } catch (Exception $e) {
     echo "Error: " . $e->getMessage() . "\n";
@@ -49,7 +51,7 @@ try {
 }
 
 // Output model selection tips
-printSection("Model Selection Tips");
+echo "=== Model Selection Tips ===\n\n";
 echo "• Choose text models based on your language needs\n";
 echo "• Select image models based on style and quality requirements\n";
 echo "• Consider model capabilities and limitations\n";

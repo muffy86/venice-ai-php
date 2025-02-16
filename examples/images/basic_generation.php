@@ -32,8 +32,21 @@
  */
 
 require_once __DIR__ . '/../../VeniceAI.php';
-require_once __DIR__ . '/../utils.php';
 $config = require_once __DIR__ . '/../config.php';
+
+// Utility functions
+function ensureOutputDirectory($path) {
+    if (!file_exists($path)) {
+        mkdir($path, 0777, true);
+    }
+    return $path;
+}
+
+function saveImage($base64Data, $outputPath) {
+    $imageData = base64_decode($base64Data);
+    file_put_contents($outputPath, $imageData);
+    echo "Saved image to: $outputPath\n";
+}
 
 // Initialize the Venice AI client
 $venice = new VeniceAI($config['api_key'], true);
@@ -43,7 +56,7 @@ $outputDir = ensureOutputDirectory(__DIR__ . '/output');
 
 try {
     // Example 1: Basic square image with minimal parameters
-    printSection("Example 1: Basic Square Image (Minimal Parameters)");
+    echo "\n=== Example 1: Basic Square Image (Minimal Parameters) ===\n\n";
     
     $response = $venice->generateImage([
         'model' => 'fluently-xl',
@@ -57,7 +70,7 @@ try {
     }
 
     // Example 2: Portrait with quality parameters
-    printSection("Example 2: Portrait with Quality Parameters");
+    echo "\n=== Example 2: Portrait with Quality Parameters ===\n\n";
     
     $response = $venice->generateImage([
         'model' => 'fluently-xl',
@@ -76,7 +89,7 @@ try {
     }
 
     // Example 3: Landscape with artistic style
-    printSection("Example 3: Landscape with Artistic Style");
+    echo "\n=== Example 3: Landscape with Artistic Style ===\n\n";
     
     $response = $venice->generateImage([
         'model' => 'fluently-xl',
@@ -94,7 +107,7 @@ try {
     }
 
     // Example 4: Gaming style with safe mode
-    printSection("Example 4: Gaming Style with Safe Mode");
+    echo "\n=== Example 4: Gaming Style with Safe Mode ===\n\n";
     
     $response = $venice->generateImage([
         'model' => 'fluently-xl',
@@ -113,7 +126,7 @@ try {
     }
 
     // Example 5: Commercial photography
-    printSection("Example 5: Commercial Photography");
+    echo "\n=== Example 5: Commercial Photography ===\n\n";
     
     $response = $venice->generateImage([
         'model' => 'fluently-xl',
@@ -132,7 +145,7 @@ try {
     }
 
     // Example 6: Paper art style
-    printSection("Example 6: Paper Art Style");
+    echo "\n=== Example 6: Paper Art Style ===\n\n";
     
     $response = $venice->generateImage([
         'model' => 'fluently-xl',
@@ -150,7 +163,7 @@ try {
     }
 
     // Example 7: Photography style
-    printSection("Example 7: Photography Style");
+    echo "\n=== Example 7: Photography Style ===\n\n";
     
     $response = $venice->generateImage([
         'model' => 'fluently-xl',
@@ -173,38 +186,38 @@ try {
 }
 
 // Output comprehensive tips
-printSection("Image Generation Parameters");
+echo "\n=== Image Generation Parameters ===\n\n";
 echo "1. Required:\n";
 echo "   • model: Model ID to use (e.g., 'fluently-xl')\n";
 echo "   • prompt: Image description (max 1500 chars)\n";
 
-printSection("Image Size Options");
+echo "\n=== Image Size Options ===\n\n";
 echo "   • Square: 1024x1024 (default)\n";
 echo "   • Portrait: 1024x1280\n";
 echo "   • Landscape: 1280x1024\n";
 
-printSection("Quality Control");
+echo "\n=== Quality Control ===\n\n";
 echo "   • steps: 1-50 (default: 30)\n";
 echo "   • cfg_scale: Controls prompt adherence\n";
 echo "   • negative_prompt: What to avoid (max 1500 chars)\n";
 
-printSection("Style Options");
+echo "\n=== Style Options ===\n\n";
 echo "   • style_preset: Many options (see documentation above)\n";
 echo "   • hide_watermark: Remove watermark (default: false)\n";
 
-printSection("Advanced Options");
+echo "\n=== Advanced Options ===\n\n";
 echo "   • seed: For reproducible results\n";
 echo "   • return_binary: Raw data vs base64 (default: false)\n";
 echo "   • safe_mode: Blur adult content (default: false)\n";
 
-printSection("Best Practices");
+echo "\n=== Best Practices ===\n\n";
 echo "   • Use clear, detailed prompts\n";
 echo "   • Include negative prompts for better control\n";
 echo "   • Increase steps for higher quality\n";
 echo "   • Save seeds for reproducible images\n";
 echo "   • Choose appropriate style presets\n";
 
-printSection("Style Categories");
+echo "\n=== Style Categories ===\n\n";
 echo "   • Artistic: 3D Model, Digital Art, Fantasy Art...\n";
 echo "   • Commercial: Advertising, Food Photography...\n";
 echo "   • Fine Art: Abstract, Watercolor, Pop Art...\n";

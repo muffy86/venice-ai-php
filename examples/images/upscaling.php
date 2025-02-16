@@ -35,8 +35,22 @@
  */
 
 require_once __DIR__ . '/../../VeniceAI.php';
-require_once __DIR__ . '/../utils.php';
 $config = require_once __DIR__ . '/../config.php';
+
+// Utility functions
+function ensureOutputDirectory($path) {
+    if (!file_exists($path)) {
+        mkdir($path, 0777, true);
+    }
+    return $path;
+}
+
+function saveImage($base64Data, $outputPath) {
+    $imageData = base64_decode($base64Data);
+    file_put_contents($outputPath, $imageData);
+    echo "Saved image to: $outputPath\n";
+    return $outputPath;
+}
 
 // Initialize the Venice AI client
 $venice = new VeniceAI($config['api_key'], true);
@@ -46,10 +60,10 @@ $outputDir = ensureOutputDirectory(__DIR__ . '/output');
 
 try {
     // Example 1: Basic 2x upscaling with base64 response
-    printSection("Example 1: Basic 2x Upscaling (base64 response)");
+    echo "\n=== Example 1: Basic 2x Upscaling (base64 response) ===\n\n";
     
     // First generate a test image
-    printResponse("Generating initial image...");
+    echo "Generating initial image...\n";
     $response = $venice->generateImage([
         'model' => 'fluently-xl',
         'prompt' => 'A simple geometric pattern with circles and squares',
@@ -66,7 +80,7 @@ try {
             $outputDir . '/pattern_original.png'
         );
         
-        printResponse("Upscaling with 2x scale (base64 response)...");
+        echo "Upscaling with 2x scale (base64 response)...\n";
         $upscaledResponse = $venice->upscaleImage([
             'image' => $imagePath,
             'scale' => '2',  // Must be string "2" or "4"
@@ -83,10 +97,10 @@ try {
     }
 
     // Example 2: 4x upscaling with binary response
-    printSection("Example 2: 4x Upscaling (binary response)");
+    echo "\n=== Example 2: 4x Upscaling (binary response) ===\n\n";
     
     if (file_exists($imagePath)) {
-        printResponse("Upscaling with 4x scale (binary response)...");
+        echo "Upscaling with 4x scale (binary response)...\n";
         try {
             $response = $venice->upscaleImage([
                 'image' => $imagePath,
@@ -101,14 +115,14 @@ try {
                 );
             }
         } catch (Exception $e) {
-            printResponse("Upscaling error: " . $e->getMessage(), "Error");
+            echo "Error: Upscaling error: " . $e->getMessage() . "\n";
         }
     } else {
-        printResponse("Error: Source image not found.", "Error");
+        echo "Error: Source image not found.\n";
     }
 
     // Example 3: Error handling - invalid scale value
-    printSection("Example 3: Error Handling - Invalid Scale");
+    echo "\n=== Example 3: Error Handling - Invalid Scale ===\n\n";
     
     try {
         $venice->upscaleImage([
@@ -116,25 +130,25 @@ try {
             'scale' => '3'  // Invalid scale value
         ]);
     } catch (InvalidArgumentException $e) {
-        printResponse("Expected error caught: Scale must be '2' or '4'");
+        echo "Expected error caught: Scale must be '2' or '4'\n";
     }
 
     // Example 4: Error handling - file too large
-    printSection("Example 4: Error Handling - File Size");
+    echo "\n=== Example 4: Error Handling - File Size ===\n\n";
     
     try {
         // This would trigger a 413 error if file > 5MB
         if (filesize($imagePath) > 5 * 1024 * 1024) {
             throw new Exception("File too large (max 5MB)");
         } else {
-            printResponse("File size check passed (under 5MB)");
+            echo "File size check passed (under 5MB)\n";
         }
     } catch (Exception $e) {
-        printResponse("Expected error caught: " . $e->getMessage());
+        echo "Expected error caught: " . $e->getMessage() . "\n";
     }
 
     // Example 5: Error handling - wrong file type
-    printSection("Example 5: Error Handling - File Type");
+    echo "\n=== Example 5: Error Handling - File Type ===\n\n";
     
     try {
         // This would trigger a 415 error if not PNG
@@ -145,10 +159,10 @@ try {
         if ($mimeType !== 'image/png') {
             throw new Exception("Invalid file type (must be PNG)");
         } else {
-            printResponse("File type check passed (is PNG)");
+            echo "File type check passed (is PNG)\n";
         }
     } catch (Exception $e) {
-        printResponse("Expected error caught: " . $e->getMessage());
+        echo "Expected error caught: " . $e->getMessage() . "\n";
     }
 
 } catch (Exception $e) {
@@ -157,25 +171,25 @@ try {
 }
 
 // Output comprehensive tips
-printSection("Upscaling Parameters");
+echo "\n=== Upscaling Parameters ===\n\n";
 echo "1. Required:\n";
 echo "   • image: PNG file to upscale (max 5MB)\n";
 echo "   • scale: Must be '2' or '4' (as string)\n";
 
-printSection("Optional Parameters");
+echo "\n=== Optional Parameters ===\n\n";
 echo "   • return_binary: true for raw data, false for base64\n";
 
-printSection("Technical Requirements");
+echo "\n=== Technical Requirements ===\n\n";
 echo "   • Content-Type: multipart/form-data\n";
 echo "   • File format: PNG only\n";
 echo "   • Maximum size: 5MB\n";
 
-printSection("Response Headers");
+echo "\n=== Response Headers ===\n\n";
 echo "   • x-ratelimit-limit-requests: Your rate limit\n";
 echo "   • x-ratelimit-remaining-requests: Requests left\n";
 echo "   • x-ratelimit-reset-requests: Reset timestamp\n";
 
-printSection("Best Practices");
+echo "\n=== Best Practices ===\n\n";
 echo "   • Verify file type before uploading\n";
 echo "   • Check file size before uploading\n";
 echo "   • Monitor rate limits in response headers\n";
@@ -183,7 +197,7 @@ echo "   • Use return_binary=true for efficiency\n";
 echo "   • Clean up temporary files\n";
 echo "   • Validate upscaled results\n";
 
-printSection("Common Use Cases");
+echo "\n=== Common Use Cases ===\n\n";
 echo "   • Enhance AI-generated images\n";
 echo "   • Prepare images for printing\n";
 echo "   • Create high-resolution versions\n";

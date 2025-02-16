@@ -9,8 +9,22 @@
  */
 
 require_once __DIR__ . '/../../VeniceAI.php';
-require_once __DIR__ . '/../utils.php';
 $config = require_once __DIR__ . '/../config.php';
+
+// Utility functions
+function ensureOutputDirectory($path) {
+    if (!file_exists($path)) {
+        mkdir($path, 0777, true);
+    }
+    return $path;
+}
+
+function saveImage($base64Data, $outputPath) {
+    $imageData = base64_decode($base64Data);
+    file_put_contents($outputPath, $imageData);
+    echo "Saved image to: $outputPath\n";
+    return $outputPath;
+}
 
 // Initialize the Venice AI client
 $venice = new VeniceAI($config['api_key'], true);
@@ -20,7 +34,7 @@ $outputDir = ensureOutputDirectory(__DIR__ . '/output');
 
 try {
     // Step 1: Generate a test image
-    printSection("Step 1: Generating Test Image");
+    echo "\n=== Step 1: Generating Test Image ===\n\n";
     
     $response = $venice->generateImage([
         'model' => 'fluently-xl',
@@ -40,7 +54,7 @@ try {
     );
 
     // Step 2: Analyze the image with Qwen
-    printSection("Step 2: Analyzing Image with Qwen");
+    echo "\n=== Step 2: Analyzing Image with Qwen ===\n\n";
 
     // Read and encode the image
     $imageData = file_get_contents($imagePath);
@@ -56,8 +70,8 @@ try {
     ];
 
     foreach ($prompts as $index => $prompt) {
-        printSection("Analysis " . ($index + 1));
-        printResponse("Question: $prompt");
+        echo "\n=== Analysis " . ($index + 1) . " ===\n\n";
+        echo "Question: $prompt\n\n";
 
         // Send to Qwen for analysis
         $analysisResponse = $venice->createChatCompletion([
@@ -79,9 +93,9 @@ try {
         ], 'qwen-2.5-vl');
 
         if (isset($analysisResponse['choices'][0]['message']['content'])) {
-            printResponse($analysisResponse['choices'][0]['message']['content'], "Response");
+            echo "Response: " . $analysisResponse['choices'][0]['message']['content'] . "\n\n";
         } else {
-            printResponse("Failed to get analysis response", "Error");
+            echo "Error: Failed to get analysis response\n\n";
         }
     }
 
@@ -91,7 +105,7 @@ try {
 }
 
 // Output tips
-printSection("Image Analysis Tips");
+echo "\n=== Image Analysis Tips ===\n\n";
 echo "- Provide clear, high-quality images for best results\n";
 echo "- Ask specific questions about what you want to analyze\n";
 echo "- Consider different aspects like composition, color, style\n";

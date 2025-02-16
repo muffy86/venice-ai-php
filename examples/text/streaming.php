@@ -14,14 +14,13 @@
  */
 
 require_once __DIR__ . '/../../VeniceAI.php';
-require_once __DIR__ . '/../utils.php';
 $config = require_once __DIR__ . '/../config.php';
 
 // Initialize the Venice AI client
 $venice = new VeniceAI($config['api_key'], true);
 
 try {
-    printSection("Example 1: Basic Streaming");
+    echo "\n=== Example 1: Basic Streaming ===\n\n";
 
     // Create a streaming chat completion
     $response = $venice->createChatCompletion(
@@ -40,13 +39,37 @@ try {
     );
 
     // Process the streaming response
-    $fullResponse = handleStreamingResponse($response);
+    $fullResponse = '';
+    $chunks = explode("\n", $response);
+    
+    foreach ($chunks as $chunk) {
+        if (strpos($chunk, 'data: ') === 0) {
+            $json = substr($chunk, 6); // Remove "data: " prefix
+            
+            if ($json === '[DONE]') continue;
+            
+            // Fix malformed JSON by adding missing commas
+            $json = preg_replace('/"([^"]+)""/', '"$1","', $json);
+            $data = json_decode($json, true);
+            
+            if ($data && isset($data['choices'][0]['delta']['content'])) {
+                $text = $data['choices'][0]['delta']['content'];
+                echo $text;
+                $fullResponse .= $text;
+                
+                if (ob_get_level() > 0) {
+                    @ob_flush();
+                }
+                @flush();
+            }
+        }
+    }
 
-    printSection("Full Response Received");
+    echo "\n=== Full Response Received ===\n\n";
     echo $fullResponse . "\n";
 
     // Example 2: Streaming with a progress counter
-    printSection("Example 2: Streaming with Progress");
+    echo "\n=== Example 2: Streaming with Progress ===\n\n";
 
     $response = $venice->createChatCompletion(
         [
@@ -62,21 +85,38 @@ try {
     $factCount = 0;
     $currentFact = '';
     $totalFacts = 5;
+    $fullResponse = '';
+    $chunks = explode("\n", $response);
     
-    // Custom progress callback for fact counting
-    $progressCallback = function($text) use (&$factCount, &$currentFact, $totalFacts) {
-        $currentFact .= $text;
-        
-        // Check if we've received a complete fact
-        if (strpos($text, "\n") !== false) {
-            $factCount++;
-            $progress = ($factCount / $totalFacts) * 100;
-            echo "\nFact $factCount of $totalFacts received... (" . number_format($progress, 1) . "% complete)\n";
-            $currentFact = '';
+    foreach ($chunks as $chunk) {
+        if (strpos($chunk, 'data: ') === 0) {
+            $json = substr($chunk, 6);
+            
+            if ($json === '[DONE]') continue;
+            
+            $json = preg_replace('/"([^"]+)""/', '"$1","', $json);
+            $data = json_decode($json, true);
+            
+            if ($data && isset($data['choices'][0]['delta']['content'])) {
+                $text = $data['choices'][0]['delta']['content'];
+                echo $text;
+                $fullResponse .= $text;
+                $currentFact .= $text;
+                
+                if (strpos($text, "\n") !== false) {
+                    $factCount++;
+                    $progress = ($factCount / $totalFacts) * 100;
+                    echo "\nFact $factCount of $totalFacts received... (" . number_format($progress, 1) . "% complete)\n";
+                    $currentFact = '';
+                }
+                
+                if (ob_get_level() > 0) {
+                    @ob_flush();
+                }
+                @flush();
+            }
         }
-    };
-
-    handleStreamingResponse($response, $progressCallback);
+    }
 
 } catch (Exception $e) {
     echo "Error: " . $e->getMessage() . "\n";
@@ -84,7 +124,7 @@ try {
 }
 
 // Output streaming tips
-printSection("Streaming Tips");
+echo "\n=== Streaming Tips ===\n\n";
 echo "- Enable streaming by setting stream=true in your request options\n";
 echo "- Use a progress callback to track and display completion status\n";
 echo "- Handle output buffering properly to ensure real-time updates\n";
