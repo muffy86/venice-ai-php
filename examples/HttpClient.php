@@ -34,12 +34,19 @@ class HttpClient {
 
         // Set up CURL options with debug settings
         $options = [
-            CURLOPT_RETURNTRANSFER => true,
             CURLOPT_HTTPHEADER => $headersList,
             CURLOPT_CUSTOMREQUEST => $method,
             CURLOPT_TIMEOUT => 30,
             CURLOPT_HEADER => false
         ];
+
+        // For streaming responses, set appropriate headers
+        if (isset($data['stream']) && $data['stream']) {
+            $options[CURLOPT_HTTPHEADER][] = 'Accept: text/event-stream';
+            $options[CURLOPT_RETURNTRANSFER] = true;
+        } else {
+            $options[CURLOPT_RETURNTRANSFER] = true;
+        }
 
         // Set debug handle if in debug mode
         if ($debug) {
@@ -250,7 +257,6 @@ class HttpClient {
             return $responseData;
         }
 
-        // If not JSON, return the raw response
         return $response;
     }
 }

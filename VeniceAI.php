@@ -156,11 +156,11 @@ class VeniceAI {
      * @param array $messages Array of message objects
      * @param string $model Model to use (e.g., 'qwen-2.5-vl' for vision)
      * @param array $options Additional options
-     * @return array The API response
+     * @return array|string The API response (array for regular responses, string for streaming)
      * @throws InvalidArgumentException If parameters are invalid
      * @throws Exception If the request fails
      */
-    public function createChatCompletion(array $messages, string $model = 'qwen-2.5-vl', array $options = []): array {
+    public function createChatCompletion(array $messages, string $model = 'qwen-2.5-vl', array $options = []): array|string {
         if (empty($messages)) {
             throw new InvalidArgumentException('messages array is required');
         }

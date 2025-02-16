@@ -98,7 +98,8 @@ try {
             file_put_contents($tempFile, base64_decode($imageResponse['data'][0]['b64_json']));
             
             $upscaledResponse = $venice->upscaleImage([
-                'image' => $tempFile
+                'image' => $tempFile,
+                'scale' => '2'  // Add required scale parameter
             ]);
             
             saveImage(
