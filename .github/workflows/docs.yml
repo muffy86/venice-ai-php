@@ -33,6 +33,9 @@ jobs:
           rm -rf venice-ai-php/
           vendor/bin/phpdoc -c phpdoc.xml
           ls -la venice-ai-php/
+          cp index.html venice-ai-php/
+          echo "Documentation directory contents after copy:"
+          ls -la venice-ai-php/
       
       - name: Setup Pages
         uses: actions/configure-pages@v4
