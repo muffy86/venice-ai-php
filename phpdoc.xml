@@ -7,7 +7,7 @@
 >
     <title>Venice PHP SDK</title>
     <paths>
-        <output>docs/venice-ai-php</output>
+        <output>venice-ai-php</output>
         <cache>build/cache</cache>
     </paths>
     <version number="latest">
