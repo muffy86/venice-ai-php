@@ -1,57 +1,126 @@
-# Venice AI PHP Examples
+# Venice AI PHP SDK
 
-This repository contains comprehensive PHP examples for interacting with the Venice AI API. Each example is designed to be self-contained and demonstrate every available parameter and option, eliminating the need to constantly refer to external documentation.
+This PHP SDK provides a simple interface for interacting with the Venice AI API, offering access to state-of-the-art AI models for text generation, image generation, and more.
 
-## Official Resources
+## Features
 
-These examples draw from and complement the following official Venice AI resources:
+- Modern PHP structure with namespaces
+- OpenAI API compatibility
+- Support for text generation via chat completions
+- Support for image generation and upscaling
+- Access to available models and model traits
 
-- [Official API Documentation](https://github.com/veniceai/api-docs/)
-- [Postman Collection](https://www.postman.com/veniceai/venice-ai-workspace/)
+## Requirements
 
-## Philosophy
+- PHP 7.4 or higher
+- cURL extension
+- JSON extension
 
-The examples in this repository follow these principles:
+## Installation
 
-1. **Comprehensive Coverage**: Each example demonstrates every available parameter for its endpoint, not just the common ones. This means you can find working examples of any feature without needing to search through documentation.
+### Using Composer (recommended)
 
-2. **Self-Contained**: Examples include all necessary setup and configuration, making it easy to get started.
+```bash
+composer require venice/venice-ai-php
+```
 
-3. **Educational**: Code is thoroughly documented with explanations of each parameter and its effects.
+### Manual Installation
 
-4. **Production-Ready**: Examples follow best practices and include proper error handling.
+Clone this repository and include the files:
 
-## Getting Started
+```php
+require_once 'path/to/src/VeniceAI.php';
+require_once 'path/to/src/Http/HttpClient.php';
+require_once 'path/to/src/Models/ModelService.php';
+require_once 'path/to/src/Chat/ChatService.php';
+require_once 'path/to/src/Image/ImageService.php';
+```
 
-1. Clone this repository
-2. Copy `config.example.php` to `config.php`
-3. Add your Venice AI API key to `config.php`
-4. Run any example: `php examples/[category]/[example].php`
+## Configuration
+
+Copy `config.example.php` to `config.php` and add your API key:
+
+```php
+return [
+    'api_key' => 'your-api-key-here',
+    // Optional debug mode
+    // 'debug' => true,
+];
+```
+
+## Usage
+
+Initialize the client and access the services:
+
+```php
+use Venice\VeniceAI;
+
+// Initialize with config file
+$venice = new VeniceAI();
+
+// Or with direct API key
+$venice = new VeniceAI('your-api-key-here');
+
+// Enable debug mode
+$venice = new VeniceAI(null, true);
+```
+
+### Text Generation
+
+```php
+$response = $venice->chat()->createCompletion([
+    ['role' => 'system', 'content' => 'You are a helpful assistant.'],
+    ['role' => 'user', 'content' => 'Tell me a joke about programming.']
+]);
+
+echo $response['choices'][0]['message']['content'];
+```
+
+### Image Generation
+
+```php
+$response = $venice->image()->generate([
+    'prompt' => 'A beautiful sunset over mountains',
+    'width' => 1024,
+    'height' => 1024
+]);
+
+// Save the image
+$imageData = base64_decode($response['data'][0]['b64_json']);
+file_put_contents('generated_image.png', $imageData);
+```
+
+### List Models
+
+```php
+// All models
+$models = $venice->models()->list();
+
+// Just text models
+$textModels = $venice->models()->listTextModels();
+
+// Just image models
+$imageModels = $venice->models()->listImageModels();
+
+// Model traits
+$traits = $venice->models()->listTraits();
+```
+
+### Image Styles
+
+```php
+// Get available image styles
+$styles = $venice->image()->listStyles();
+```
 
 ## Examples
 
-### Image Generation
-- `examples/images/basic_generation.php`: Demonstrates all image generation parameters including model selection, dimensions, steps, style presets, etc.
-- `examples/images/upscaling.php`: Shows image upscaling with various scale factors
-- `examples/images/analyze_image.php`: Demonstrates image analysis capabilities
+See the `examples/` directory for more usage examples.
 
-### Text Generation
-- `examples/text/basic_chat.php`: Basic chat completion with all available parameters
-- `examples/text/advanced_chat.php`: Advanced chat features including system prompts
-- `examples/text/streaming.php`: Streaming chat completions
+## OpenAI Compatibility
 
-### Model Management
-- `examples/models/list_models.php`: List and filter available models
-- `examples/models/filter_models.php`: Advanced model filtering and selection
-
-### Workflows
-- `examples/workflows/image_analysis.php`: Combined image generation and analysis
-- `examples/workflows/story_illustration.php`: Text-to-image story creation
-
-## Contributing
-
-Contributions are welcome! Please ensure any new examples follow our philosophy of being comprehensive and self-contained.
+The Venice AI API implements the OpenAI API specification for text generation, allowing compatibility with existing OpenAI clients and tools.
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This SDK is distributed under the MIT License.

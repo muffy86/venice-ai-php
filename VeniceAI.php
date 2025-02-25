@@ -1,10 +1,22 @@
 <?php
 
 /**
- * Venice AI PHP Examples
- * 
- * Example PHP client for interacting with the Venice AI API.
+ * Venice AI PHP SDK
+ *
+ * PHP client for interacting with the Venice AI API.
  * Implements OpenAI API specification for compatibility.
+ *
+ * The Venice AI API provides access to state-of-the-art AI models for text generation,
+ * image generation, and more. This SDK provides a simple interface for accessing 
+ * the API endpoints.
+ *
+ * Key features:
+ * - OpenAI API compatibility
+ * - Support for chat completions
+ * - Support for image generation and upscaling
+ * - Access to available models and model traits
+ *
+ * @link https://api.venice.ai/doc/api/swagger.yaml API Documentation
  */
 class VeniceAI {
     /** @var string The API key for authentication */
@@ -29,7 +41,11 @@ class VeniceAI {
         'landscape' => [1280, 1024]
     ];
 
-    /** @var array Valid style presets */
+    /**
+     * @var array Valid style presets
+     * Note: Styles may change over time, so this list may not be comprehensive.
+     * For the most up-to-date list, use the /image/styles endpoint.
+     */
     private const VALID_STYLES = [
         // Artistic
         "3D Model", "Analog Film", "Anime", "Comic Book", "Digital Art",
@@ -142,25 +158,59 @@ class VeniceAI {
 
     /**
      * List available image models
-     * 
+     *
      * @return array List of available image models
      * @throws Exception If the request fails
      */
     public function listImageModels(): array {
         return $this->listModels('image');
     }
+    
+    /**
+     * List available model traits
+     *
+     * @return array List of available model traits
+     * @throws Exception If the request fails
+     */
+    public function listModelTraits(): array {
+        return $this->request('GET', '/models/traits');
+    }
+    
+    /**
+     * Validate the API key by making a simple request to the models endpoint
+     *
+     * @return bool True if the API key is valid
+     */
+    public function validateApiKey(): bool {
+        try {
+            $this->listModels();
+            return true;
+        } catch (Exception $e) {
+            return false;
+        }
+    }
+    
+    /**
+     * List available image style presets
+     *
+     * @return array List of available image style presets
+     * @throws Exception If the request fails
+     */
+    public function listImageStyles(): array {
+        return $this->request('GET', '/image/styles');
+    }
 
     /**
      * Create a chat completion
-     * 
+     *
      * @param array $messages Array of message objects
-     * @param string $model Model to use (e.g., 'qwen-2.5-vl' for vision)
+     * @param string $model Model to use (defaults to 'default' which maps to Venice's recommended model)
      * @param array $options Additional options
      * @return array|string The API response (array for regular responses, string for streaming)
      * @throws InvalidArgumentException If parameters are invalid
      * @throws Exception If the request fails
      */
-    public function createChatCompletion(array $messages, string $model = 'qwen-2.5-vl', array $options = []): array|string {
+    public function createChatCompletion(array $messages, string $model = 'default', array $options = []): array|string {
         if (empty($messages)) {
             throw new InvalidArgumentException('messages array is required');
         }
@@ -202,6 +252,20 @@ class VeniceAI {
             if (isset($options[$param])) {
                 $data[$param] = $options[$param];
             }
+        }
+
+        // Add Venice-specific parameters
+        if (isset($options['venice_parameters'])) {
+            $data['venice_parameters'] = $options['venice_parameters'];
+        }
+        
+        // Handle include_venice_system_prompt parameter separately for convenience
+        if (isset($options['include_venice_system_prompt'])) {
+            if (!isset($data['venice_parameters'])) {
+                $data['venice_parameters'] = [];
+            }
+            $data['venice_parameters']['include_venice_system_prompt'] =
+                (bool)$options['include_venice_system_prompt'];
         }
 
         // Make the request
@@ -288,7 +352,7 @@ class VeniceAI {
 
         // Build request data
         $data = [
-            'model' => $options['model'] ?? 'fluently-xl',
+            'model' => $options['model'] ?? 'default',
             'prompt' => $options['prompt']
         ];
 
@@ -467,5 +531,4 @@ class VeniceAI {
             $this->debugHandle
         );
     }
-
 }

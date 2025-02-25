@@ -3,9 +3,14 @@
 /**
  * Venice AI API Configuration
  * 
- * Copy this file to config.php and set your API key
+ * Copy this file to config.php and add your API key
+ * 
+ * @return array Configuration parameters
  */
-
 return [
-    'api_key' => 'your-api-key-here'
+    // Your Venice API key
+    'api_key' => 'your-api-key-here',
+    
+    // Debug mode (optional)
+    // 'debug' => false,
 ];
