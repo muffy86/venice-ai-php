@@ -1,0 +1,6 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+composer phpcs
+composer phpstan
+composer php-cs-fixer --dry-run --diff
