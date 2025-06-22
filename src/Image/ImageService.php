@@ -29,7 +29,7 @@ class ImageService {
 
     /**
      * Generate an image
-     * 
+     *
      * @param array $options Image generation options
      * @return array The API response
      * @throws \InvalidArgumentException If required options are missing or invalid
@@ -57,12 +57,12 @@ class ImageService {
             $size = [$options['width'], $options['height']];
             $validSizes = array_map(function($s) { return implode('x', $s); }, self::VALID_SIZES);
             $requestedSize = $size[0] . 'x' . $size[1];
-            
+
             if (!in_array($requestedSize, $validSizes)) {
                 $sizeDescriptions = array_map(function($name, $dimensions) {
                     return "$name (" . implode('x', $dimensions) . ")";
                 }, array_keys(self::VALID_SIZES), self::VALID_SIZES);
-                
+
                 throw new \InvalidArgumentException(
                     "Invalid image size: $requestedSize. Available sizes: " . implode(', ', $sizeDescriptions)
                 );
@@ -82,11 +82,11 @@ class ImageService {
         if (isset($options['style_preset'])) {
             $styles = $this->listStyles();
             $validStyles = [];
-            
+
             if (isset($styles['styles']) && is_array($styles['styles'])) {
                 $validStyles = array_column($styles['styles'], 'name');
             }
-            
+
             if (!empty($validStyles) && !in_array($options['style_preset'], $validStyles)) {
                 throw new \InvalidArgumentException(
                     'Invalid style_preset. Use listStyles() method to get available styles.'
@@ -176,8 +176,18 @@ class ImageService {
     }
 
     /**
+     * Alias for generate() - provides OpenAI-compatible API
+     *
+     * @param array $params Image generation parameters
+     * @return array The API response
+     */
+    public function create(array $params): array {
+        return $this->generate($params);
+    }
+
+    /**
      * Upscale an image
-     * 
+     *
      * @param array $options Image upscaling options
      * @return array The API response
      * @throws \InvalidArgumentException If required options are missing or invalid
@@ -220,15 +230,15 @@ class ImageService {
         $headers = [
             'Accept' => 'image/*'
         ];
-        
+
         // Make the request (HttpClient will handle multipart form data)
         $response = $this->client->request(
-            'POST', 
-            '/image/upscale', 
-            $data, 
+            'POST',
+            '/image/upscale',
+            $data,
             $headers
         );
-        
+
         // For upscaling, we get back raw PNG data
         if (empty($response)) {
             throw new \Exception('No image data received from upscaling request');
@@ -243,7 +253,7 @@ class ImageService {
             ]
         ];
     }
-    
+
     /**
      * List available image style presets
      *
@@ -253,7 +263,7 @@ class ImageService {
     public function listStyles(): array {
         return $this->client->request('GET', '/image/styles');
     }
-    
+
     /**
      * Get valid image sizes
      *

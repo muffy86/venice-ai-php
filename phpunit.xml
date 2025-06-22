@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.0/phpunit.xsd"
+         bootstrap="vendor/autoload.php"
+         colors="true"
+         cacheDirectory=".phpunit.cache"
+         executionOrder="depends,defects"
+         requireCoverageMetadata="true"
+         beStrictAboutCoverageMetadata="true"
+         beStrictAboutOutputDuringTests="true"
+         failOnRisky="true"
+         failOnWarning="true">
+
+    <testsuites>
+        <!-- Core Test Suite -->
+        <testsuite name="Core">
+            <directory>tests/VeniceAI</directory>
+            <directory>tests/Utils</directory>
+            <directory>tests/Http</directory>
+            <directory>tests/Exceptions</directory>
+        </testsuite>
+
+        <!-- Services Test Suite -->
+        <testsuite name="Services">
+            <directory>tests/Chat</directory>
+            <directory>tests/Image</directory>
+            <directory>tests/Models</directory>
+            <directory>tests/Audio</directory>
+            <directory>tests/Embeddings</directory>
+        </testsuite>
+
+        <!-- Advanced Features Test Suite -->
+        <testsuite name="Advanced">
+            <directory>tests/Cache</directory>
+            <directory>tests/Events</directory>
+            <directory>tests/Security</directory>
+            <directory>tests/Async</directory>
+            <directory>tests/Monitoring</directory>
+            <directory>tests/Plugins</directory>
+            <directory>tests/Config</directory>
+        </testsuite>
+
+        <!-- Integration Tests -->
+        <testsuite name="Integration">
+            <directory>tests/Integration</directory>
+        </testsuite>
+
+        <!-- Performance Tests -->
+        <testsuite name="Performance">
+            <directory>tests/Performance</directory>
+        </testsuite>
+    </testsuites>
+
+    <coverage>
+        <include>
+            <directory suffix=".php">src</directory>
+        </include>
+        <exclude>
+            <directory>src/Examples</directory>
+            <directory>src/Resources</directory>
+        </exclude>
+        <report>
+            <clover outputFile="build/logs/clover.xml"/>
+            <html outputDirectory="build/coverage"/>
+            <text outputFile="build/coverage.txt"/>
+        </report>
+    </coverage>
+
+    <php>
+        <env name="APP_ENV" value="testing"/>
+        <env name="VENICE_TEST_MODE" value="true"/>
+        <ini name="error_reporting" value="-1"/>
+        <ini name="display_errors" value="On"/>
+        <ini name="display_startup_errors" value="On"/>
+        <ini name="memory_limit" value="512M"/>
+    </php>
+
+    <logging>
+        <junit outputFile="build/logs/junit.xml"/>
+        <testdoxHtml outputFile="build/logs/testdox.html"/>
+        <testdoxText outputFile="build/logs/testdox.txt"/>
+    </logging>
+
+    <source>
+        <include>
+            <directory suffix=".php">src</directory>
+        </include>
+    </source>
+</phpunit>

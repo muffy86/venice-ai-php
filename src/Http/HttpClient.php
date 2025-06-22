@@ -2,284 +2,422 @@
 
 namespace Venice\Http;
 
+use Venice\Utils\Logger;
+use Venice\Exceptions\VeniceException;
+use Venice\Exceptions\AuthenticationException;
+use Venice\Exceptions\RateLimitException;
+
 /**
- * Static utility class for handling HTTP requests
+ * Optimized HTTP client with connection pooling, caching, and performance enhancements
  */
 class HttpClient {
+    /** @var Logger|null Logger instance */
+    private static ?Logger $logger = null;
+
+    /** @var array Configuration options */
+    private static array $config = [
+        'timeout' => 30,
+        'connect_timeout' => 5,
+        'max_retries' => 3,
+        'base_delay' => 1000,
+        'user_agent' => 'Venice-AI-PHP-SDK/2.0.0',
+        'keep_alive' => true,
+        'connection_pool_size' => 10,
+        'dns_cache_timeout' => 300,
+        'buffer_size' => 65536, // 64KB
+        'hardware_optimizations' => [
+            'nvidia_5080' => false,
+            'intel_i9' => false,
+            'display_240hz' => false,
+        ]
+    ];
+=======
+    /** @var array Configuration options */
+    private static array $config = [
+        'timeout' => 30,
+        'connect_timeout' => 5,
+        'max_retries' => 3,
+        'base_delay' => 1000,
+        'user_agent' => 'Venice-AI-PHP-SDK/2.0.0',
+        'keep_alive' => true,
+        'connection_pool_size' => 10,
+        'dns_cache_timeout' => 300,
+        'buffer_size' => 65536, // 64KB
+        'hardware_optimizations' => [
+            'nvidia_5080' => false,
+            'intel_i9' => false,
+            'display_240hz' => false,
+        ]
+    ];
+
+    /** @var array Request statistics */
+    private static array $stats = [
+        'requests' => 0,
+        'retries' => 0,
+        'errors' => 0,
+        'total_time' => 0,
+        'cache_hits' => 0,
+        'connection_reuses' => 0
+    ];
+
+    /** @var array Connection pool */
+    private static array $connectionPool = [];
+
+    /** @var array Response cache */
+    private static array $responseCache = [];
+
+    /** @var int Maximum cache size */
+    private static int $maxCacheSize = 1000;
+
     /**
-     * Make an HTTP request
-     * 
-     * @param string $url The URL to request
-     * @param string $method HTTP method (GET, POST, etc.)
-     * @param array $headers Request headers
-     * @param array $data Request data (optional)
-     * @param bool $debug Enable debug output
-     * @param resource|null $debugHandle Debug output handle
-     * @return array|string The response (array for JSON, string for binary)
-     * @throws \Exception If the request fails
+     * Set logger instance
+     */
+    public static function setLogger(Logger $logger): void {
+        self::$logger = $logger;
+    }
+
+    /**
+     * Configure HTTP client
+     */
+    public static function configure(array $config): void {
+        self::$config = array_merge(self::$config, $config);
+    }
+
+    /**
+     * Make HTTP request with enhanced performance optimizations
      */
     public static function request(
         string $url,
-        string $method,
-        array $headers,
+        string $method = 'GET',
+        array $headers = [],
         array $data = [],
         bool $debug = false,
-        $debugHandle = null,
-        ?int $testStatusCode = null
+        $debugHandle = null
     ): array|string {
-        $ch = curl_init($url);
-        
-        $headersList = [];
-        foreach ($headers as $key => $value) {
-            $headersList[] = "$key: $value";
-        }
+        $startTime = microtime(true);
+        self::$stats['requests']++;
 
-        // Set up CURL options with debug settings
-        $options = [
-            CURLOPT_HTTPHEADER => $headersList,
-            CURLOPT_CUSTOMREQUEST => $method,
-            CURLOPT_TIMEOUT => 30,
-            CURLOPT_HEADER => false
-        ];
-
-        // For streaming responses, set appropriate headers
-        if (isset($data['stream']) && $data['stream']) {
-            $options[CURLOPT_HTTPHEADER][] = 'Accept: text/event-stream';
-            $options[CURLOPT_RETURNTRANSFER] = true;
-        } else {
-            $options[CURLOPT_RETURNTRANSFER] = true;
-        }
-
-        // Set debug handle if in debug mode
-        if ($debug) {
-            $options[CURLOPT_STDERR] = $debugHandle;
-        }
-
-        // Show concise debug output focusing on key information
-        if ($debug) {
-            echo "\n[Request] $method $url\n";
-            if (!empty($data)) {
-                $debugData = self::filterDebugData($data);
-                echo "[Payload] " . json_encode($debugData, JSON_PRETTY_PRINT) . "\n";
+        // Check cache for GET requests
+        if ($method === 'GET' && empty($data)) {
+            $cacheKey = self::getCacheKey($url, $headers);
+            if (isset(self::$responseCache[$cacheKey])) {
+                self::$stats['cache_hits']++;
+                return self::$responseCache[$cacheKey];
             }
         }
 
-        if (!empty($data)) {
-            // If we're sending an image file, use multipart form data
-            if (isset($data['image']) && file_exists($data['image'])) {
-                $postFields = [];
-                
-                // Add image file
-                $postFields['image'] = new \CURLFile(
-                    $data['image'],
-                    'image/png',
-                    basename($data['image'])
-                );
-                
-                // Add all other fields except 'image'
-                foreach ($data as $key => $value) {
-                    if ($key !== 'image') {
-                        $postFields[$key] = (string)$value;
+        $attempt = 0;
+        $lastException = null;
+
+        while ($attempt < self::$config['max_retries']) {
+            try {
+                $response = self::makeOptimizedRequest($url, $method, $headers, $data, $debug, $debugHandle);
+
+                // Cache successful GET responses
+                if ($method === 'GET' && empty($data)) {
+                    self::cacheResponse($url, $headers, $response);
+                }
+
+                // Record successful request time
+                self::$stats['total_time'] += microtime(true) - $startTime;
+
+                return $response;
+            } catch (VeniceException $e) {
+                $lastException = $e;
+                $attempt++;
+
+                if ($attempt < self::$config['max_retries'] && self::isRetryableError($e)) {
+                    self::$stats['retries']++;
+                    $delay = self::calculateDelay($attempt);
+
+                    if (self::$logger) {
+                        self::$logger->warning("Request failed, retrying in {$delay}ms", [
+                            'attempt' => $attempt,
+                            'error' => $e->getMessage(),
+                            'url' => $url
+                        ]);
                     }
-                }
-                
-                $options[CURLOPT_POSTFIELDS] = $postFields;
-                
-                // Update headers for multipart form data
-                $headersList = array_filter($headersList, function($header) {
-                    return !preg_match('/^(Content-Type:|Accept:)/i', $header);
-                });
-                $headersList[] = 'Content-Type: multipart/form-data';
-                if (strpos($url, '/image/') === 0) {
-                    $headersList[] = 'Accept: image/*';
-                }
-                $options[CURLOPT_HTTPHEADER] = $headersList;
-            } else {
-                $options[CURLOPT_POSTFIELDS] = json_encode($data);
-            }
-        }
 
-        // Try up to 3 times for connection errors
-        $maxRetries = 3;
-        $attempt = 1;
-        $response = null;
-        $statusCode = null;
-        $contentType = null;
-        $lastError = null;
-
-        while ($attempt <= $maxRetries) {
-            curl_setopt_array($ch, $options);
-            $response = curl_exec($ch);
-            if ($testStatusCode !== null) {
-                // For testing: simulate API response
-                $statusCode = $testStatusCode;
-                $contentType = 'application/json';
-                $response = json_encode([
-                    'error' => [
-                        'message' => 'Test error message',
-                        'type' => 'test_error'
-                    ]
-                ]);
-                break;
-            } else {
-                $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-                $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
-
-                if (!curl_errno($ch)) {
-                    // Success
+                    usleep($delay * 1000); // Convert to microseconds
+                } else {
+                    self::$stats['errors']++;
+                    if (self::$logger) {
+                        self::$logger->error("Request failed after {$attempt} attempts", [
+                            'error' => $e->getMessage(),
+                            'url' => $url
+                        ]);
+                    }
                     break;
                 }
             }
-
-            $lastError = curl_error($ch);
-            if ($debug) {
-                echo "\nAttempt $attempt failed: " . $lastError . "\n";
-            }
-
-            // Only retry on connection errors
-            if (!in_array(curl_errno($ch), [
-                CURLE_COULDNT_CONNECT,
-                CURLE_COULDNT_RESOLVE_HOST,
-                CURLE_OPERATION_TIMEOUTED,
-                CURLE_GOT_NOTHING,
-                CURLE_RECV_ERROR,
-                CURLE_SEND_ERROR
-            ])) {
-                break;
-            }
-
-            $attempt++;
-            if ($attempt <= $maxRetries) {
-                // Wait before retrying (exponential backoff)
-                $delay = pow(2, $attempt - 1);
-                if ($debug) {
-                    echo "Waiting {$delay}s before retry...\n";
-                }
-                sleep($delay);
-            }
         }
 
-        if ($lastError) {
+        throw $lastException ?? new VeniceException('Request failed after maximum retries');
+    }
+
+    /**
+     * Make optimized HTTP request with connection pooling
+     */
+    private static function makeOptimizedRequest(
+        string $url,
+        string $method,
+        array $headers,
+        array $data,
+        bool $debug,
+        $debugHandle
+    ): array|string {
+        $ch = self::getConnection($url);
+
+        // Optimized cURL options
+        curl_setopt_array($ch, [
+            CURLOPT_URL => $url,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT => self::$config['timeout'],
+            CURLOPT_CONNECTTIMEOUT => self::$config['connect_timeout'],
+            CURLOPT_USERAGENT => self::$config['user_agent'],
+            CURLOPT_HTTPHEADER => self::formatHeaders($headers),
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_MAXREDIRS => 3,
+            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_SSL_VERIFYHOST => 2,
+            CURLOPT_ENCODING => '', // Enable compression
+            CURLOPT_TCP_NODELAY => true, // Disable Nagle's algorithm
+            CURLOPT_TCP_KEEPALIVE => self::$config['keep_alive'] ? 1 : 0,
+            CURLOPT_TCP_KEEPIDLE => 120,
+            CURLOPT_TCP_KEEPINTVL => 60,
+            CURLOPT_FRESH_CONNECT => false, // Reuse connections
+            CURLOPT_FORBID_REUSE => false,
+            CURLOPT_DNS_CACHE_TIMEOUT => self::$config['dns_cache_timeout'],
+            CURLOPT_BUFFERSIZE => self::$config['buffer_size'],
+            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_2_0, // Use HTTP/2 when available
+            CURLOPT_ACCEPT_ENCODING => 'gzip, deflate, br', // Support modern compression
+            CURLOPT_PIPEWAIT => 1, // Enable HTTP/2 pipelining
+        ]);
+
+        // Set method-specific options
+        self::setMethodOptions($ch, $method, $data);
+
+        // Debug output
+        if ($debug && $debugHandle) {
+            curl_setopt($ch, CURLOPT_VERBOSE, true);
+            curl_setopt($ch, CURLOPT_STDERR, $debugHandle);
+        }
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $error = curl_error($ch);
+
+        // Don't close connection if using connection pooling
+        if (!self::$config['keep_alive']) {
             curl_close($ch);
-            $errorMsg = 'Request failed after ' . ($attempt - 1) . ' retries: ' . $lastError;
-            if ($debug) {
-                echo "\nFinal Error: " . $errorMsg . "\n";
-                echo "Status Code: " . $statusCode . "\n";
-                if ($response) {
-                    echo "Response: " . substr($response, 0, 1000) . "\n";
-                }
+        }
+
+        if ($response === false) {
+            throw new VeniceException("cURL error: $error");
+        }
+
+        return self::handleResponse($response, $httpCode, $url);
+    }
+
+    /**
+     * Get or create connection from pool
+     */
+    private static function getConnection(string $url): \CurlHandle {
+        $host = parse_url($url, PHP_URL_HOST);
+
+        if (self::$config['keep_alive'] && isset(self::$connectionPool[$host])) {
+            self::$stats['connection_reuses']++;
+            return self::$connectionPool[$host];
+        }
+
+        $ch = curl_init();
+
+        if (self::$config['keep_alive']) {
+            // Manage pool size with LRU eviction
+            if (count(self::$connectionPool) >= self::$config['connection_pool_size']) {
+                $oldestHost = array_key_first(self::$connectionPool);
+                curl_close(self::$connectionPool[$oldestHost]);
+                unset(self::$connectionPool[$oldestHost]);
             }
-            throw new \Exception($errorMsg);
-        }
-        
-        curl_close($ch);
 
-        if (!$response) {
-            throw new \Exception('Empty response received from API');
+            self::$connectionPool[$host] = $ch;
         }
 
-        if ($statusCode >= 400) {
-            // Try to parse error response
-            $errorData = json_decode($response, true);
-            if ($errorData && isset($errorData['error'])) {
-                $error = $errorData['error'];
-                $message = is_array($error) ? $error['message'] : $error;
-                $errorContext = '';
-                
-                // Add HTTP status context
-                switch ($statusCode) {
-                    case 401:
-                        $errorContext = 'Authentication failed. Please check your API key.';
-                        break;
-                    case 429:
-                        $errorContext = 'Rate limit exceeded. Please wait before retrying.';
-                        break;
-                    case 500:
-                        $errorContext = 'Server error encountered. Please try again later.';
-                        break;
+        return $ch;
+    }
+
+    /**
+     * Set method-specific cURL options
+     */
+    private static function setMethodOptions($ch, string $method, array $data): void {
+        switch (strtoupper($method)) {
+            case 'POST':
+                curl_setopt($ch, CURLOPT_POST, true);
+                if (!empty($data)) {
+                    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
                 }
-                
-                $fullMessage = $message . ($errorContext ? " ($errorContext)" : '');
-                
-                if ($debug) {
-                    echo "\n[Error] " . $fullMessage . "\n";
+                break;
+            case 'PUT':
+                curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PUT');
+                if (!empty($data)) {
+                    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
                 }
-                
-                throw new \Exception($fullMessage);
-            }
-            throw new \Exception("API request failed (HTTP $statusCode): " . substr($response, 0, 200));
-        }
-
-        // Handle binary responses (images)
-        if (strpos($contentType, 'image/') === 0) {
-            // Verify we got image data
-            if (empty($response)) {
-                throw new \Exception('No data received from API');
-            }
-            
-            // Check if response starts with PNG or JPEG magic numbers
-            $isPNG = substr($response, 0, 8) === "\x89PNG\r\n\x1a\n";
-            $isJPEG = substr($response, 0, 2) === "\xFF\xD8";
-            
-            if (!$isPNG && !$isJPEG) {
-                // If not an image, try to parse as JSON error response
-                $errorData = json_decode($response, true);
-                if ($errorData && isset($errorData['error'])) {
-                    throw new \Exception($errorData['error']);
+                break;
+            case 'DELETE':
+                curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'DELETE');
+                break;
+            case 'PATCH':
+                curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PATCH');
+                if (!empty($data)) {
+                    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
                 }
-                throw new \Exception('Invalid image data received');
+                break;
+            default:
+                curl_setopt($ch, CURLOPT_HTTPGET, true);
+        }
+    }
+
+    /**
+     * Handle HTTP response with optimized error handling
+     */
+    private static function handleResponse(string $response, int $httpCode, string $url): array|string {
+        // Handle different HTTP status codes
+        switch ($httpCode) {
+            case 200:
+            case 201:
+                break;
+            case 401:
+                throw new AuthenticationException('Invalid API key or authentication failed');
+            case 429:
+                throw new RateLimitException('Rate limit exceeded');
+            case 400:
+                $decoded = json_decode($response, true);
+                $message = $decoded['error']['message'] ?? 'Bad request';
+                throw new VeniceException("Bad request: $message");
+            case 404:
+                throw new VeniceException('Endpoint not found');
+            case 500:
+            case 502:
+            case 503:
+            case 504:
+                throw new VeniceException("Server error (HTTP $httpCode)");
+            default:
+                throw new VeniceException("Unexpected HTTP status code: $httpCode");
+        }
+
+        // Optimized JSON decoding
+        if (str_starts_with(trim($response), ['{', '['])) {
+            try {
+                return json_decode($response, true, 512, JSON_THROW_ON_ERROR);
+            } catch (\JsonException $e) {
+                // Fallback to raw response if JSON decoding fails
+                return $response;
             }
-            
-            // Return binary image data
-            return $response;
-        }
-
-        // Debug response info
-        if ($debug && $statusCode === 200) {
-            echo "\n[Success] HTTP " . $statusCode . "\n";
-        }
-
-        // Handle JSON responses
-        if (strpos($contentType, 'application/json') !== false || strpos($contentType, 'text/json') !== false) {
-            $responseData = json_decode($response, true);
-            if ($responseData === null) {
-                if ($debug) {
-                    echo "\nFailed to parse JSON response. Raw response (first 100 chars):\n";
-                    echo substr($response, 0, 100) . "...\n";
-                }
-                throw new \Exception('Failed to parse JSON response: ' . json_last_error_msg());
-            }
-            return $responseData;
-        }
-
-        // For non-JSON responses, try to decode as JSON first
-        $responseData = json_decode($response, true);
-        if ($responseData !== null) {
-            return $responseData;
         }
 
         return $response;
     }
 
     /**
-     * Filter sensitive or large data from debug output
-     *
-     * @param array $data Data to filter
-     * @return array Filtered data
+     * Generate cache key for response caching
      */
-    public static function filterDebugData(array $data): array {
-        $filtered = [];
-        foreach ($data as $key => $value) {
-            if ($key === 'image' && is_string($value) && file_exists($value)) {
-                $filtered[$key] = '[FILE: ' . basename($value) . ']';
-            } elseif (is_string($value) && strlen($value) > 100) {
-                $filtered[$key] = substr($value, 0, 97) . '...';
-            } elseif (is_array($value)) {
-                $filtered[$key] = self::filterDebugData($value);
-            } else {
-                $filtered[$key] = $value;
-            }
+    private static function getCacheKey(string $url, array $headers): string {
+        return md5($url . serialize($headers));
+    }
+
+    /**
+     * Cache response with LRU eviction
+     */
+    private static function cacheResponse(string $url, array $headers, $response): void {
+        $cacheKey = self::getCacheKey($url, $headers);
+
+        // Implement LRU eviction
+        if (count(self::$responseCache) >= self::$maxCacheSize) {
+            array_shift(self::$responseCache); // Remove oldest entry
         }
-        return $filtered;
+
+        self::$responseCache[$cacheKey] = $response;
+    }
+
+    /**
+     * Check if error is retryable
+     */
+    private static function isRetryableError(VeniceException $e): bool {
+        return !($e instanceof AuthenticationException) &&
+               !($e instanceof RateLimitException) &&
+               !str_contains($e->getMessage(), 'Bad request');
+    }
+
+    /**
+     * Format headers for cURL
+     */
+    private static function formatHeaders(array $headers): array {
+        $formatted = [];
+        foreach ($headers as $key => $value) {
+            $formatted[] = "$key: $value";
+        }
+        return $formatted;
+    }
+
+    /**
+     * Calculate exponential backoff delay with jitter
+     */
+    private static function calculateDelay(int $attempt): int {
+        $baseDelay = self::$config['base_delay'] * pow(2, $attempt - 1);
+        $jitter = mt_rand(0, (int)($baseDelay * 0.1)); // Add up to 10% jitter
+        return min($baseDelay + $jitter, 30000); // Max 30 seconds
+    }
+
+    /**
+     * Get request statistics
+     */
+    public static function getStats(): array {
+        return array_merge(self::$stats, [
+            'cache_size' => count(self::$responseCache),
+            'connection_pool_size' => count(self::$connectionPool),
+            'avg_request_time' => self::$stats['requests'] > 0
+                ? self::$stats['total_time'] / self::$stats['requests']
+                : 0
+        ]);
+    }
+
+    /**
+     * Reset statistics
+     */
+    public static function resetStats(): void {
+        self::$stats = [
+            'requests' => 0,
+            'retries' => 0,
+            'errors' => 0,
+            'total_time' => 0,
+            'cache_hits' => 0,
+            'connection_reuses' => 0
+        ];
+    }
+
+    /**
+     * Clear response cache
+     */
+    public static function clearCache(): void {
+        self::$responseCache = [];
+    }
+
+    /**
+     * Close all connections in pool
+     */
+    public static function closeConnections(): void {
+        foreach (self::$connectionPool as $ch) {
+            curl_close($ch);
+        }
+        self::$connectionPool = [];
+    }
+
+    /**
+     * Cleanup resources
+     */
+    public static function cleanup(): void {
+        self::clearCache();
+        self::closeConnections();
+        self::resetStats();
     }
 }
