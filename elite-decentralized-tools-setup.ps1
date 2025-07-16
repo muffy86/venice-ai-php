@@ -270,26 +270,38 @@ function Install-ToolCategory {
             Write-Host "  ⚡ Installing $tool..." -ForegroundColor Gray
 
             # Try different package managers
+            $installSucceeded = $false
             if (Get-Command choco -ErrorAction SilentlyContinue) {
                 choco install $tool -y --ignore-checksums 2>$null
+                if ($LASTEXITCODE -eq 0) { $installSucceeded = $true }
             }
             elseif (Get-Command winget -ErrorAction SilentlyContinue) {
                 winget install $tool --silent 2>$null
+                if ($LASTEXITCODE -eq 0) { $installSucceeded = $true }
             }
             elseif (Get-Command scoop -ErrorAction SilentlyContinue) {
                 scoop install $tool 2>$null
+                if ($LASTEXITCODE -eq 0) { $installSucceeded = $true }
             }
             elseif (Get-Command npm -ErrorAction SilentlyContinue) {
                 npm install -g $tool 2>$null
+                if ($LASTEXITCODE -eq 0) { $installSucceeded = $true }
             }
             elseif (Get-Command pip -ErrorAction SilentlyContinue) {
                 pip install $tool 2>$null
+                if ($LASTEXITCODE -eq 0) { $installSucceeded = $true }
             }
             elseif (Get-Command cargo -ErrorAction SilentlyContinue) {
                 cargo install $tool 2>$null
+                if ($LASTEXITCODE -eq 0) { $installSucceeded = $true }
             }
 
-            Write-Host "    ✅ $tool installed successfully" -ForegroundColor Green
+            if ($installSucceeded) {
+                Write-Host "    ✅ $tool installed successfully" -ForegroundColor Green
+            }
+            else {
+                Write-Host "    ⚠️ Failed to install $tool" -ForegroundColor Red
+            }
         }
         catch {
             Write-Host "    ⚠️ Failed to install $tool" -ForegroundColor Red
