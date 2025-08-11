@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCP Knowledge Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 350px 1fr 300px;
+            gap: 2rem;
+        }
+
+        .sidebar, .right-panel {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            height: fit-content;
+        }
+
+        .main-content {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            min-height: 600px;
+        }
+
+        .search-section {
+            margin-bottom: 2rem;
+        }
+
+        .search-form {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-control {
+            flex: 1;
+            padding: 0.8rem;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        .section-header {
+            margin-bottom: 1rem;
+            color: #2c3e50;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 0.5rem;
+        }
+
+        .knowledge-graph {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            min-height: 300px;
+        }
+
+        .graph-controls {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .node {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            margin: 0.25rem;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .node:hover {
+            background: #5a6fd8;
+            transform: scale(1.05);
+        }
+
+        .node.entity { background: #28a745; }
+        .node.relation { background: #ffc107; color: #212529; }
+        .node.observation { background: #17a2b8; }
+
+        .search-results {
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .search-result {
+            padding: 1rem;
+            border-bottom: 1px solid #e9ecef;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .search-result:hover {
+            background: #f8f9fa;
+        }
+
+        .search-result:last-child {
+            border-bottom: none;
+        }
+
+        .result-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+        }
+
+        .result-snippet {
+            color: #6c757d;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .result-url {
+            color: #667eea;
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+        }
+
+        .document-manager {
+            margin-bottom: 2rem;
+        }
+
+        .document-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .document-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            background: white;
+        }
+
+        .document-info {
+            flex: 1;
+        }
+
+        .document-name {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.25rem;
+        }
+
+        .document-meta {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+
+        .document-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .document-actions .btn {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .quick-actions .btn {
+            width: 100%;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            text-align: center;
+            border: 2px solid #e9ecef;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+            color: #667eea;
+        }
+
+        .memory-status {
+            background: #e3f2fd;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .research-history {
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            padding: 0.5rem;
+            border-bottom: 1px solid #e9ecef;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+
+        .history-item:hover {
+            background: #f8f9fa;
+        }
+
+        .history-time {
+            color: #6c757d;
+            font-size: 0.8rem;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #6c757d;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #6c757d;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .tab-controls {
+            display: flex;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 0.8rem 1rem;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            font-weight: 600;
+            color: #6c757d;
+        }
+
+        .tab-btn.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @media (max-width: 1200px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto auto;
+            }
+
+            .sidebar, .right-panel {
+                height: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧠 MCP Knowledge Assistant</h1>
+            <p>Intelligent research, knowledge graphs, and document management</p>
+        </div>
+
+        <div class="main-layout">
+            <!-- Left Sidebar -->
+            <div class="sidebar">
+                <div class="section-header">
+                    <h3>🔍 Research</h3>
+                </div>
+
+                <div class="search-section">
+                    <div class="search-form">
+                        <input type="text" class="form-control" id="searchQuery" placeholder="Enter research topic...">
+                        <button class="btn btn-primary" onclick="performResearch()">🔍</button>
+                    </div>
+                    <div class="quick-actions">
+                        <button class="btn btn-secondary" onclick="addToKnowledgeGraph()">➕ Add to Graph</button>
+                        <button class="btn btn-secondary" onclick="exportResearch()">📤 Export</button>
+                    </div>
+                </div>
+
+                <div class="section-header">
+                    <h3>📊 Statistics</h3>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="entityCount">0</div>
+                        <div>Entities</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="relationCount">0</div>
+                        <div>Relations</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="documentCount">0</div>
+                        <div>Documents</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="researchCount">0</div>
+                        <div>Searches</div>
+                    </div>
+                </div>
+
+                <div class="memory-status">
+                    <strong>🧠 Memory Server</strong><br>
+                    <span id="memoryStatus">Connected</span><br>
+                    <small>Knowledge graph storage active</small>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="main-content">
+                <div class="tab-controls">
+                    <button class="tab-btn active" onclick="switchTab('knowledge')">🕸️ Knowledge Graph</button>
+                    <button class="tab-btn" onclick="switchTab('research')">🔍 Research Results</button>
+                    <button class="tab-btn" onclick="switchTab('documents')">📄 Documents</button>
+                </div>
+
+                <!-- Knowledge Graph Tab -->
+                <div class="tab-content active" id="knowledgeTab">
+                    <div class="graph-controls">
+                        <button class="btn btn-success" onclick="addEntity()">➕ Add Entity</button>
+                        <button class="btn btn-warning" onclick="addRelation()">🔗 Add Relation</button>
+                        <button class="btn btn-secondary" onclick="visualizeGraph()">🎨 Visualize</button>
+                        <button class="btn btn-secondary" onclick="clearGraph()">🗑️ Clear</button>
+                    </div>
+                    <div class="knowledge-graph" id="knowledgeGraph">
+                        <div style="text-align: center; color: #6c757d; margin-top: 2rem;">
+                            <p>Your knowledge graph will appear here</p>
+                            <p><small>Add entities and relations to build your knowledge base</small></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Research Results Tab -->
+                <div class="tab-content" id="researchTab">
+                    <div id="searchResults" class="search-results">
+                        <div style="text-align: center; color: #6c757d; padding: 2rem;">
+                            Enter a search query to start researching
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Documents Tab -->
+                <div class="tab-content" id="documentsTab">
+                    <div class="document-manager">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h4>📁 Document Library</h4>
+                            <div>
+                                <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">📥 Upload</button>
+                                <input type="file" id="fileInput" style="display: none;" multiple onchange="uploadDocuments(event)">
+                            </div>
+                        </div>
+                        <div class="document-list" id="documentList">
+                            <div style="text-align: center; color: #6c757d; padding: 2rem;">
+                                No documents uploaded yet
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel -->
+            <div class="right-panel">
+                <div class="section-header">
+                    <h3>📋 Research History</h3>
+                </div>
+                <div class="research-history" id="researchHistory">
+                    <div style="text-align: center; color: #6c757d; padding: 1rem;">
+                        No searches yet
+                    </div>
+                </div>
+
+                <div class="section-header" style="margin-top: 2rem;">
+                    <h3>🎯 Quick Actions</h3>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                    <button class="btn btn-primary" onclick="showEntityModal()">➕ Add Entity</button>
+                    <button class="btn btn-success" onclick="showRelationModal()">🔗 Add Relation</button>
+                    <button class="btn btn-warning" onclick="exportKnowledgeGraph()">📊 Export Graph</button>
+                    <button class="btn btn-secondary" onclick="importKnowledgeGraph()">📥 Import Graph</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Entity Modal -->
+    <div class="modal" id="entityModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add New Entity</h3>
+                <button class="close-btn" onclick="hideModal('entityModal')">&times;</button>
+            </div>
+            <form onsubmit="saveEntity(event)">
+                <div style="margin-bottom: 1rem;">
+                    <label>Entity Name</label>
+                    <input type="text" class="form-control" id="entityName" required>
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <label>Entity Type</label>
+                    <select class="form-control" id="entityType">
+                        <option value="Person">Person</option>
+                        <option value="Organization">Organization</option>
+                        <option value="Concept">Concept</option>
+                        <option value="Technology">Technology</option>
+                        <option value="Event">Event</option>
+                        <option value="Location">Location</option>
+                    </select>
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <label>Description/Observations</label>
+                    <textarea class="form-control" id="entityObservations" rows="3" placeholder="Enter observations about this entity..."></textarea>
+                </div>
+                <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                    <button type="button" class="btn btn-secondary" onclick="hideModal('entityModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Entity</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Relation Modal -->
+    <div class="modal" id="relationModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add New Relation</h3>
+                <button class="close-btn" onclick="hideModal('relationModal')">&times;</button>
+            </div>
+            <form onsubmit="saveRelation(event)">
+                <div style="margin-bottom: 1rem;">
+                    <label>From Entity</label>
+                    <select class="form-control" id="fromEntity" required>
+                        <option value="">Select entity...</option>
+                    </select>
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <label>Relation Type</label>
+                    <input type="text" class="form-control" id="relationType" placeholder="e.g., 'works for', 'is part of', 'created'" required>
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <label>To Entity</label>
+                    <select class="form-control" id="toEntity" required>
+                        <option value="">Select entity...</option>
+                    </select>
+                </div>
+                <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                    <button type="button" class="btn btn-secondary" onclick="hideModal('relationModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Relation</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let knowledgeGraph = {
+            entities: [],
+            relations: [],
+            observations: []
+        };
+        let documents = [];
+        let researchHistory = [];
+        let searchResults = [];
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeMemoryServer();
+            loadKnowledgeGraph();
+            updateStatistics();
+            addSampleData();
+        });
+
+        function initializeMemoryServer() {
+            document.getElementById('memoryStatus').textContent = 'Connected';
+            // Simulate memory server initialization
+            console.log('Memory server initialized for knowledge graph storage');
+        }
+
+        function addSampleData() {
+            // Add some sample entities and relations for demonstration
+            const sampleEntities = [
+                { name: 'MCP Protocol', type: 'Technology', observations: ['Model Context Protocol for AI systems', 'Enables communication between AI and external services'] },
+                { name: 'Venice AI', type: 'Organization', observations: ['AI development company', 'Focuses on AI agent frameworks'] },
+                { name: 'Claude', type: 'Technology', observations: ['AI assistant created by Anthropic', 'Uses constitutional AI approach'] }
+            ];
+
+            const sampleRelations = [
+                { from: 'Venice AI', to: 'MCP Protocol', relationType: 'implements' },
+                { from: 'Claude', to: 'MCP Protocol', relationType: 'supports' }
+            ];
+
+            sampleEntities.forEach(entity => {
+                knowledgeGraph.entities.push(entity);
+            });
+
+            sampleRelations.forEach(relation => {
+                knowledgeGraph.relations.push(relation);
+            });
+
+            saveKnowledgeGraph();
+            renderKnowledgeGraph();
+            updateStatistics();
+        }
+
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(tabName + 'Tab').classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function performResearch() {
+            const query = document.getElementById('searchQuery').value.trim();
+            if (!query) return;
+
+            const resultsContainer = document.getElementById('searchResults');
+            resultsContainer.innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Researching "${query}"...</p>
+                </div>
+            `;
+
+            // Switch to research tab
+            switchTab('research');
+            document.querySelector('.tab-btn:nth-child(2)').click();
+
+            // Simulate research with sample results
+            setTimeout(() => {
+                const sampleResults = [
+                    {
+                        title: `Understanding ${query} - Comprehensive Guide`,
+                        snippet: `This comprehensive guide covers everything you need to know about ${query}, including its history, applications, and future prospects.`,
+                        url: `https://example.com/guide-to-${query.toLowerCase().replace(' ', '-')}`
+                    },
+                    {
+                        title: `${query} Best Practices and Implementation`,
+                        snippet: `Learn the best practices for implementing ${query} in your projects, with real-world examples and case studies.`,
+                        url: `https://example.com/best-practices-${query.toLowerCase().replace(' ', '-')}`
+                    },
+                    {
+                        title: `Latest Developments in ${query}`,
+                        snippet: `Stay updated with the latest developments and trends in ${query}. Recent breakthroughs and future predictions.`,
+                        url: `https://example.com/latest-${query.toLowerCase().replace(' ', '-')}`
+                    }
+                ];
+
+                searchResults = sampleResults;
+                renderSearchResults();
+                addToResearchHistory(query);
+                updateStatistics();
+            }, 2000);
+        }
+
+        function renderSearchResults() {
+            const container = document.getElementById('searchResults');
+            if (searchResults.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: #6c757d; padding: 2rem;">No results found</div>';
+                return;
+            }
+
+            container.innerHTML = searchResults.map(result => `
+                <div class="search-result" onclick="selectSearchResult('${result.url}')">
+                    <div class="result-title">${result.title}</div>
+                    <div class="result-snippet">${result.snippet}</div>
+                    <div class="result-url">${result.url}</div>
+                </div>
+            `).join('');
+        }
+
+        function selectSearchResult(url) {
+            // Simulate opening result and archiving
+            window.open(url, '_blank');
+            alert('Result opened! In a real implementation, this would be archived using the puppeteer server.');
+        }
+
+        function addToResearchHistory(query) {
+            const historyItem = {
+                query,
+                timestamp: new Date(),
+                resultsCount: searchResults.length
+            };
+
+            researchHistory.unshift(historyItem);
+            if (researchHistory.length > 20) {
+                researchHistory = researchHistory.slice(0, 20);
+            }
+
+            renderResearchHistory();
+        }
+
+        function renderResearchHistory() {
+            const container = document.getElementById('researchHistory');
+            if (researchHistory.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: #6c757d; padding: 1rem;">No searches yet</div>';
+                return;
+            }
+
+            container.innerHTML = researchHistory.map(item => `
+                <div class="history-item" onclick="repeatSearch('${item.query}')">
+                    <div>${item.query}</div>
+                    <div class="history-time">${item.timestamp.toLocaleString()} (${item.resultsCount} results)</div>
+                </div>
+            `).join('');
+        }
+
+        function repeatSearch(query) {
+            document.getElementById('searchQuery').value = query;
+            performResearch();
+        }
+
+        function showEntityModal() {
+            document.getElementById('entityModal').style.display = 'block';
+        }
+
+        function showRelationModal() {
+            updateEntitySelects();
+            document.getElementById('relationModal').style.display = 'block';
+        }
+
+        function hideModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        function updateEntitySelects() {
+            const fromSelect = document.getElementById('fromEntity');
+            const toSelect = document.getElementById('toEntity');
+
+            const options = knowledgeGraph.entities.map(entity =>
+                `<option value="${entity.name}">${entity.name} (${entity.type})</option>`
+            ).join('');
+
+            fromSelect.innerHTML = '<option value="">Select entity...</option>' + options;
+            toSelect.innerHTML = '<option value="">Select entity...</option>' + options;
+        }
+
+        function saveEntity(event) {
+            event.preventDefault();
+
+            const name = document.getElementById('entityName').value;
+            const type = document.getElementById('entityType').value;
+            const observations = document.getElementById('entityObservations').value.split('\n').filter(obs => obs.trim());
+
+            const entity = { name, type, observations };
+            knowledgeGraph.entities.push(entity);
+
+            saveKnowledgeGraph();
+            renderKnowledgeGraph();
+            updateStatistics();
+            hideModal('entityModal');
+
+            // Clear form
+            document.getElementById('entityName').value = '';
+            document.getElementById('entityObservations').value = '';
+        }
+
+        function saveRelation(event) {
+            event.preventDefault();
+
+            const from = document.getElementById('fromEntity').value;
+            const relationType = document.getElementById('relationType').value;
+            const to = document.getElementById('toEntity').value;
+
+            const relation = { from, relationType, to };
+            knowledgeGraph.relations.push(relation);
+
+            saveKnowledgeGraph();
+            renderKnowledgeGraph();
+            updateStatistics();
+            hideModal('relationModal');
+
+            // Clear form
+            document.getElementById('relationType').value = '';
+        }
+
+        function renderKnowledgeGraph() {
+            const container = document.getElementById('knowledgeGraph');
+
+            if (knowledgeGraph.entities.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; color: #6c757d; margin-top: 2rem;">
+                        <p>Your knowledge graph will appear here</p>
+                        <p><small>Add entities and relations to build your knowledge base</small></p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '<h4>🏷️ Entities</h4><div style="margin-bottom: 2rem;">';
+            knowledgeGraph.entities.forEach(entity => {
+                html += `<span class="node entity" title="${entity.observations.join(', ')}">${entity.name} (${entity.type})</span>`;
+            });
+            html += '</div>';
+
+            if (knowledgeGraph.relations.length > 0) {
+                html += '<h4>🔗 Relations</h4><div style="margin-bottom: 2rem;">';
+                knowledgeGraph.relations.forEach(relation => {
+                    html += `<div style="margin: 0.5rem 0; padding: 0.5rem; background: #f8f9fa; border-radius: 4px;">
+                        <span class="node entity">${relation.from}</span>
+                        <span class="node relation">${relation.relationType}</span>
+                        <span class="node entity">${relation.to}</span>
+                    </div>`;
+                });
+                html += '</div>';
+            }
+
+            container.innerHTML = html;
+        }
+
+        function saveKnowledgeGraph() {
+            // This would normally use the MCP memory server
+            localStorage.setItem('knowledgeGraph', JSON.stringify(knowledgeGraph));
+        }
+
+        function loadKnowledgeGraph() {
+            const saved = localStorage.getItem('knowledgeGraph');
+            if (saved) {
+                knowledgeGraph = JSON.parse(saved);
+                renderKnowledgeGraph();
+            }
+        }
+
+        function updateStatistics() {
+            document.getElementById('entityCount').textContent = knowledgeGraph.entities.length;
+            document.getElementById('relationCount').textContent = knowledgeGraph.relations.length;
+            document.getElementById('documentCount').textContent = documents.length;
+            document.getElementById('researchCount').textContent = researchHistory.length;
+        }
+
+        function addEntity() {
+            showEntityModal();
+        }
+
+        function addRelation() {
+            showRelationModal();
+        }
+
+        function visualizeGraph() {
+            alert('Graph visualization would be implemented using a library like D3.js or vis.js');
+        }
+
+        function clearGraph() {
+            if (confirm('Are you sure you want to clear the entire knowledge graph?')) {
+                knowledgeGraph = { entities: [], relations: [], observations: [] };
+                saveKnowledgeGraph();
+                renderKnowledgeGraph();
+                updateStatistics();
+            }
+        }
+
+        function addToKnowledgeGraph() {
+            const query = document.getElementById('searchQuery').value.trim();
+            if (!query) {
+                alert('Please enter a search query first');
+                return;
+            }
+
+            // Create entity from search query
+            const entity = {
+                name: query,
+                type: 'Concept',
+                observations: [`Research topic: ${query}`, `Added from search on ${new Date().toLocaleString()}`]
+            };
+
+            knowledgeGraph.entities.push(entity);
+            saveKnowledgeGraph();
+            renderKnowledgeGraph();
+            updateStatistics();
+            alert(`Added "${query}" to knowledge graph as a Concept entity`);
+        }
+
+        function exportResearch() {
+            const exportData = {
+                searchResults,
+                researchHistory,
+                knowledgeGraph,
+                exportDate: new Date().toISOString()
+            };
+
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `research-export-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function exportKnowledgeGraph() {
+            const blob = new Blob([JSON.stringify(knowledgeGraph, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `knowledge-graph-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function importKnowledgeGraph() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.json';
+            input.onchange = function(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const importedGraph = JSON.parse(e.target.result);
+                        if (importedGraph.entities && importedGraph.relations) {
+                            if (confirm('This will replace your current knowledge graph. Continue?')) {
+                                knowledgeGraph = importedGraph;
+                                saveKnowledgeGraph();
+                                renderKnowledgeGraph();
+                                updateStatistics();
+                                alert('Knowledge graph imported successfully!');
+                            }
+                        } else {
+                            alert('Invalid knowledge graph file format!');
+                        }
+                    } catch (error) {
+                        alert('Error reading file: ' + error.message);
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        }
+
+        function uploadDocuments(event) {
+            const files = event.target.files;
+            if (!files.length) return;
+
+            Array.from(files).forEach(file => {
+                const document = {
+                    id: Date.now() + Math.random(),
+                    name: file.name,
+                    size: file.size,
+                    type: file.type,
+                    uploadDate: new Date().toISOString(),
+                    content: null // In real implementation, would extract content
+                };
+
+                documents.push(document);
+            });
+
+            renderDocuments();
+            updateStatistics();
+        }
+
+        function renderDocuments() {
+            const container = document.getElementById('documentList');
+            if (documents.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: #6c757d; padding: 2rem;">No documents uploaded yet</div>';
+                return;
+            }
+
+            container.innerHTML = documents.map(doc => `
+                <div class="document-item">
+                    <div class="document-info">
+                        <div class="document-name">${doc.name}</div>
+                        <div class="document-meta">
+                            ${formatFileSize(doc.size)} • Uploaded ${new Date(doc.uploadDate).toLocaleDateString()}
+                        </div>
+                    </div>
+                    <div class="document-actions">
+                        <button class="btn btn-primary" onclick="viewDocument(${doc.id})">👁️ View</button>
+                        <button class="btn btn-danger" onclick="deleteDocument(${doc.id})">🗑️ Delete</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function viewDocument(documentId) {
+            const doc = documents.find(d => d.id === documentId);
+            if (doc) {
+                alert(`Viewing ${doc.name}\n\nIn a real implementation, this would open the document using the filesystem server.`);
+            }
+        }
+
+        function deleteDocument(documentId) {
+            if (confirm('Are you sure you want to delete this document?')) {
+                documents = documents.filter(d => d.id !== documentId);
+                renderDocuments();
+                updateStatistics();
+            }
+        }
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        };
+
+        // Handle Enter key in search input
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('searchQuery').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    performResearch();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

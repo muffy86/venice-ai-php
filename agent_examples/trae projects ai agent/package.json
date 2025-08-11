@@ -1,0 +1,74 @@
+{
+  "name": "ai-agent-workforce",
+  "version": "1.0.0",
+  "description": "A sophisticated browser-based multi-agent AI system that creates a collaborative workforce of specialized AI agents",
+  "main": "index.html",
+  "scripts": {
+    "start": "python -m http.server 8000",
+    "serve": "npx http-server -p 8000 -c-1",
+    "dev": "npx live-server --port=8000 --no-browser",
+    "build": "echo 'No build process required for this browser-based application'",
+    "test": "echo 'No tests specified yet'",
+    "lint": "npx eslint js/*.js",
+    "format": "npx prettier --write js/*.js css/*.css *.html"
+  },
+  "keywords": [
+    "ai",
+    "agents",
+    "multi-agent",
+    "llm",
+    "openrouter",
+    "elevenlabs",
+    "automation",
+    "computer-vision",
+    "research",
+    "coding-assistant",
+    "voice-ai",
+    "browser-based",
+    "javascript",
+    "tensorflow",
+    "tesseract",
+    "ocr",
+    "workflow-automation"
+  ],
+  "author": "AI Agent Workforce Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/ai-agent-workforce.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/ai-agent-workforce/issues"
+  },
+  "homepage": "https://github.com/your-username/ai-agent-workforce#readme",
+  "devDependencies": {
+    "eslint": "^8.50.0",
+    "prettier": "^3.0.0",
+    "http-server": "^14.1.1",
+    "live-server": "^1.2.2"
+  },
+  "dependencies": {},
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "browserslist": [
+    "last 2 Chrome versions",
+    "last 2 Firefox versions",
+    "last 2 Safari versions",
+    "last 2 Edge versions"
+  ],
+  "files": [
+    "index.html",
+    "css/",
+    "js/",
+    "README.md",
+    "LICENSE"
+  ],
+  "config": {
+    "port": 8000
+  },
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/your-username"
+  }
+}

@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"name": "new trae settup app creater",
+			"path": "."
+		}
+	],
+	"settings": {
+		"cSpell.languageSettings": [],
+		"xml.fileAssociations": [
+			{
+				"pattern": "**/source/**.ptx",
+				"systemId": "c:\\Users\\aiech\\.vscode\\extensions\\oscarlevin.pretext-tools-0.33.0-universal\\assets\\schema\\pretext.rng"
+			}
+		]
+	}
+}

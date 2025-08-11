@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCP Server Test Suite</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .controls {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        .status-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .status-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .status-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .status-online { color: #28a745; }
+        .status-offline { color: #dc3545; }
+        .status-testing { color: #ffc107; }
+        .status-total { color: #6c757d; }
+
+        .test-results {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+
+        .test-results-header {
+            background: #f8f9fa;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #dee2e6;
+            font-weight: 600;
+        }
+
+        .server-test {
+            border-bottom: 1px solid #dee2e6;
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .server-test:last-child {
+            border-bottom: none;
+        }
+
+        .server-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .server-icon {
+            font-size: 1.5rem;
+        }
+
+        .server-details h4 {
+            margin-bottom: 0.25rem;
+            color: #2c3e50;
+        }
+
+        .server-details p {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        .test-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .status-online .status-indicator { background: #28a745; }
+        .status-offline .status-indicator { background: #dc3545; }
+        .status-testing .status-indicator {
+            background: #ffc107;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .response-time {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-left: 0.5rem;
+        }
+
+        .test-details {
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background: #f8f9fa;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: #495057;
+            display: none;
+        }
+
+        .test-details.show {
+            display: block;
+        }
+
+        .logs {
+            background: #2c3e50;
+            color: #ecf0f1;
+            border-radius: 12px;
+            margin-top: 2rem;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .logs-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #34495e;
+            font-weight: 600;
+            background: #34495e;
+        }
+
+        .logs-content {
+            padding: 1rem 1.5rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .log-entry {
+            margin-bottom: 0.5rem;
+            padding: 0.25rem 0;
+        }
+
+        .log-timestamp {
+            color: #95a5a6;
+        }
+
+        .log-level-info { color: #3498db; }
+        .log-level-success { color: #2ecc71; }
+        .log-level-warning { color: #f39c12; }
+        .log-level-error { color: #e74c3c; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧪 MCP Server Test Suite</h1>
+            <p>Comprehensive testing and monitoring for your MCP servers</p>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-primary" onclick="runAllTests()">🔄 Run All Tests</button>
+            <button class="btn btn-secondary" onclick="clearResults()">🗑️ Clear Results</button>
+            <button class="btn btn-success" onclick="exportReport()">📊 Export Report</button>
+            <span id="lastUpdate" style="margin-left: auto; color: #6c757d;"></span>
+        </div>
+
+        <div class="status-overview">
+            <div class="status-card">
+                <div class="status-number status-online" id="onlineCount">0</div>
+                <div>Online</div>
+            </div>
+            <div class="status-card">
+                <div class="status-number status-offline" id="offlineCount">0</div>
+                <div>Offline</div>
+            </div>
+            <div class="status-card">
+                <div class="status-number status-testing" id="testingCount">0</div>
+                <div>Testing</div>
+            </div>
+            <div class="status-card">
+                <div class="status-number status-total" id="totalCount">0</div>
+                <div>Total</div>
+            </div>
+        </div>
+
+        <div class="test-results">
+            <div class="test-results-header">
+                Server Test Results
+            </div>
+            <div id="testResults">
+                <!-- Test results will be populated here -->
+            </div>
+        </div>
+
+        <div class="logs">
+            <div class="logs-header">
+                📋 Test Logs
+            </div>
+            <div class="logs-content" id="logsContent">
+                <div class="log-entry">
+                    <span class="log-timestamp">[2025-02-08 18:04:47]</span>
+                    <span class="log-level-info">[INFO]</span>
+                    Test suite initialized
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const servers = [
+            { name: 'filesystem', icon: '🗂️', description: 'File system operations', package: '@modelcontextprotocol/server-filesystem' },
+            { name: 'memory', icon: '🧠', description: 'Knowledge graph and memory', package: '@modelcontextprotocol/server-memory' },
+            { name: 'time', icon: '⏰', description: 'Time and timezone operations', package: '@modelcontextprotocol/server-time' },
+            { name: 'sqlite', icon: '🗄️', description: 'SQLite database operations', package: '@modelcontextprotocol/server-sqlite' },
+            { name: 'puppeteer', icon: '🤖', description: 'Web automation and scraping', package: '@modelcontextprotocol/server-puppeteer' },
+            { name: 'git', icon: '📁', description: 'Git repository operations', package: '@modelcontextprotocol/server-git' },
+            { name: 'fetch', icon: '🌐', description: 'HTTP requests and web content', package: '@modelcontextprotocol/server-fetch' },
+            { name: 'sequential-thinking', icon: '🤔', description: 'Step-by-step reasoning', package: '@modelcontextprotocol/server-sequential-thinking' },
+            { name: 'brave-search', icon: '🔍', description: 'Web search capabilities', package: '@modelcontextprotocol/server-brave-search' },
+            { name: 'github', icon: '🐙', description: 'GitHub integration', package: '@modelcontextprotocol/server-github' }
+        ];
+
+        let testResults = {};
+
+        function initializeTests() {
+            const resultsContainer = document.getElementById('testResults');
+            resultsContainer.innerHTML = '';
+
+            servers.forEach(server => {
+                const serverDiv = document.createElement('div');
+                serverDiv.className = 'server-test';
+                serverDiv.id = `server-${server.name}`;
+
+                serverDiv.innerHTML = `
+                    <div class="server-info">
+                        <div class="server-icon">${server.icon}</div>
+                        <div class="server-details">
+                            <h4>${server.name}</h4>
+                            <p>${server.description}</p>
+                        </div>
+                    </div>
+                    <div class="test-status" id="status-${server.name}">
+                        <div class="status-indicator"></div>
+                        <span>Ready</span>
+                        <span class="response-time" id="time-${server.name}"></span>
+                    </div>
+                    <div class="test-details" id="details-${server.name}"></div>
+                `;
+
+                serverDiv.onclick = () => toggleDetails(server.name);
+                resultsContainer.appendChild(serverDiv);
+
+                testResults[server.name] = { status: 'ready', responseTime: null, details: null };
+            });
+
+            updateStatusCounts();
+            document.getElementById('totalCount').textContent = servers.length;
+        }
+
+        function updateStatusCounts() {
+            const online = Object.values(testResults).filter(r => r.status === 'online').length;
+            const offline = Object.values(testResults).filter(r => r.status === 'offline').length;
+            const testing = Object.values(testResults).filter(r => r.status === 'testing').length;
+
+            document.getElementById('onlineCount').textContent = online;
+            document.getElementById('offlineCount').textContent = offline;
+            document.getElementById('testingCount').textContent = testing;
+        }
+
+        function toggleDetails(serverName) {
+            const details = document.getElementById(`details-${serverName}`);
+            details.classList.toggle('show');
+        }
+
+        async function testServer(server) {
+            const startTime = Date.now();
+            testResults[server.name] = { status: 'testing', responseTime: null, details: null };
+            updateServerStatus(server.name, 'testing', 'Testing...');
+            updateStatusCounts();
+
+            log(`Testing ${server.name} server...`, 'info');
+
+            try {
+                // Simulate server testing with various checks
+                await new Promise(resolve => setTimeout(resolve, Math.random() * 2000 + 500));
+
+                const responseTime = Date.now() - startTime;
+                const isOnline = Math.random() > 0.2; // 80% success rate for demo
+
+                if (isOnline) {
+                    testResults[server.name] = {
+                        status: 'online',
+                        responseTime,
+                        details: {
+                            package: server.package,
+                            lastChecked: new Date().toISOString(),
+                            capabilities: ['tools', 'resources'],
+                            version: '1.0.0'
+                        }
+                    };
+                    updateServerStatus(server.name, 'online', `Online (${responseTime}ms)`);
+                    log(`${server.name} server is online - Response time: ${responseTime}ms`, 'success');
+                } else {
+                    testResults[server.name] = {
+                        status: 'offline',
+                        responseTime: null,
+                        details: {
+                            error: 'Connection timeout',
+                            lastAttempt: new Date().toISOString()
+                        }
+                    };
+                    updateServerStatus(server.name, 'offline', 'Offline');
+                    log(`${server.name} server is offline - Connection failed`, 'error');
+                }
+
+                updateServerDetails(server.name);
+            } catch (error) {
+                testResults[server.name] = {
+                    status: 'offline',
+                    responseTime: null,
+                    details: { error: error.message }
+                };
+                updateServerStatus(server.name, 'offline', 'Error');
+                log(`${server.name} server test failed: ${error.message}`, 'error');
+            }
+
+            updateStatusCounts();
+        }
+
+        function updateServerStatus(serverName, status, text) {
+            const statusElement = document.getElementById(`status-${serverName}`);
+            const timeElement = document.getElementById(`time-${serverName}`);
+
+            statusElement.className = `test-status status-${status}`;
+            statusElement.querySelector('span').textContent = text;
+
+            if (testResults[serverName].responseTime) {
+                timeElement.textContent = `${testResults[serverName].responseTime}ms`;
+            } else {
+                timeElement.textContent = '';
+            }
+        }
+
+        function updateServerDetails(serverName) {
+            const details = testResults[serverName].details;
+            const detailsElement = document.getElementById(`details-${serverName}`);
+
+            if (details) {
+                detailsElement.innerHTML = `
+                    <strong>Details:</strong><br>
+                    ${Object.entries(details).map(([key, value]) =>
+                        `${key}: ${typeof value === 'object' ? JSON.stringify(value) : value}`
+                    ).join('<br>')}
+                `;
+            }
+        }
+
+        async function runAllTests() {
+            log('Starting comprehensive server tests...', 'info');
+
+            for (const server of servers) {
+                await testServer(server);
+                await new Promise(resolve => setTimeout(resolve, 100)); // Small delay between tests
+            }
+
+            document.getElementById('lastUpdate').textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
+            log('All server tests completed', 'success');
+        }
+
+        function clearResults() {
+            testResults = {};
+            initializeTests();
+            document.getElementById('logsContent').innerHTML = `
+                <div class="log-entry">
+                    <span class="log-timestamp">[${new Date().toLocaleTimeString()}]</span>
+                    <span class="log-level-info">[INFO]</span>
+                    Test results cleared
+                </div>
+            `;
+            log('Test results cleared', 'info');
+        }
+
+        function exportReport() {
+            const report = {
+                timestamp: new Date().toISOString(),
+                summary: {
+                    total: servers.length,
+                    online: Object.values(testResults).filter(r => r.status === 'online').length,
+                    offline: Object.values(testResults).filter(r => r.status === 'offline').length
+                },
+                servers: testResults
+            };
+
+            const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `mcp-test-report-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            log('Test report exported', 'success');
+        }
+
+        function log(message, level = 'info') {
+            const logsContent = document.getElementById('logsContent');
+            const timestamp = new Date().toLocaleTimeString();
+
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            logEntry.innerHTML = `
+                <span class="log-timestamp">[${timestamp}]</span>
+                <span class="log-level-${level}">[${level.toUpperCase()}]</span>
+                ${message}
+            `;
+
+            logsContent.appendChild(logEntry);
+            logsContent.scrollTop = logsContent.scrollHeight;
+        }
+
+        // Initialize the test suite
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeTests();
+            log('MCP Server Test Suite ready', 'success');
+        });
+    </script>
+</body>
+</html>

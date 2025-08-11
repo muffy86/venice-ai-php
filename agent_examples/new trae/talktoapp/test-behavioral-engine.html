@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Behavioral Learning Engine Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .test-container {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .success {
+            background: rgba(76, 175, 80, 0.3);
+            border: 1px solid #4CAF50;
+        }
+        .error {
+            background: rgba(244, 67, 54, 0.3);
+            border: 1px solid #f44336;
+        }
+        .info {
+            background: rgba(33, 150, 243, 0.3);
+            border: 1px solid #2196F3;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧠 Behavioral Learning Engine Test</h1>
+    
+    <div class="test-container">
+        <h2>Engine Status</h2>
+        <div id="engine-status"></div>
+        
+        <h2>Method Tests</h2>
+        <div id="method-tests"></div>
+        
+        <h2>Interactive Tests</h2>
+        <button onclick="testTrackActivity()">Test Track Activity</button>
+        <button onclick="testGetContext()">Test Get Context</button>
+        <button onclick="testGetInsights()">Test Get Insights</button>
+        <button onclick="testClearData()">Clear Test Data</button>
+        
+        <div id="interactive-results"></div>
+    </div>
+
+    <script src="modules/behavioral-learning-engine.js"></script>
+    <script>
+        function addResult(containerId, message, type = 'info') {
+            const container = document.getElementById(containerId);
+            const div = document.createElement('div');
+            div.className = `test-result ${type}`;
+            div.textContent = message;
+            container.appendChild(div);
+        }
+
+        function testEngineStatus() {
+            try {
+                if (typeof BehavioralLearningEngine !== 'undefined') {
+                    addResult('engine-status', '✅ BehavioralLearningEngine class is available', 'success');
+                    
+                    if (window.behavioralEngine) {
+                        addResult('engine-status', '✅ Global instance is initialized', 'success');
+                        return true;
+                    } else {
+                        addResult('engine-status', '⚠️ Global instance not found, creating new one...', 'info');
+                        window.behavioralEngine = new BehavioralLearningEngine();
+                        addResult('engine-status', '✅ New instance created successfully', 'success');
+                        return true;
+                    }
+                } else {
+                    addResult('engine-status', '❌ BehavioralLearningEngine class not found', 'error');
+                    return false;
+                }
+            } catch (error) {
+                addResult('engine-status', `❌ Error: ${error.message}`, 'error');
+                return false;
+            }
+        }
+
+        function testMethods() {
+            if (!window.behavioralEngine) return;
+
+            const methods = [
+                'trackActivity',
+                'getCurrentContext',
+                'getActiveApplications',
+                'getSystemMetrics',
+                'getUserActivityLevel',
+                'getInsights',
+                'enableLearning',
+                'disableLearning'
+            ];
+
+            methods.forEach(method => {
+                try {
+                    if (typeof window.behavioralEngine[method] === 'function') {
+                        addResult('method-tests', `✅ ${method}() method exists`, 'success');
+                    } else {
+                        addResult('method-tests', `❌ ${method}() method missing`, 'error');
+                    }
+                } catch (error) {
+                    addResult('method-tests', `❌ Error checking ${method}: ${error.message}`, 'error');
+                }
+            });
+        }
+
+        function testTrackActivity() {
+            try {
+                window.behavioralEngine.trackActivity({
+                    type: 'test_click',
+                    element: 'button',
+                    text: 'Test Track Activity'
+                });
+                addResult('interactive-results', '✅ trackActivity() executed successfully', 'success');
+            } catch (error) {
+                addResult('interactive-results', `❌ trackActivity() error: ${error.message}`, 'error');
+            }
+        }
+
+        function testGetContext() {
+            try {
+                const context = window.behavioralEngine.getCurrentContext();
+                addResult('interactive-results', `✅ getCurrentContext() returned: ${JSON.stringify(context, null, 2)}`, 'success');
+            } catch (error) {
+                addResult('interactive-results', `❌ getCurrentContext() error: ${error.message}`, 'error');
+            }
+        }
+
+        function testGetInsights() {
+            try {
+                const insights = window.behavioralEngine.getInsights();
+                addResult('interactive-results', `✅ getInsights() returned: ${JSON.stringify(insights, null, 2)}`, 'success');
+            } catch (error) {
+                addResult('interactive-results', `❌ getInsights() error: ${error.message}`, 'error');
+            }
+        }
+
+        function testClearData() {
+            try {
+                window.behavioralEngine.clearData();
+                addResult('interactive-results', '✅ clearData() executed successfully', 'success');
+            } catch (error) {
+                addResult('interactive-results', `❌ clearData() error: ${error.message}`, 'error');
+            }
+        }
+
+        // Run tests when page loads
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const engineOk = testEngineStatus();
+                if (engineOk) {
+                    testMethods();
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

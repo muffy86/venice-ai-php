@@ -1,0 +1,216 @@
+{
+  "name": "talktoapp",
+  "version": "2.0.0",
+  "description": "Revolutionary AI-powered app builder that creates applications from natural language descriptions",
+  "main": "index.html",
+  "scripts": {
+    "start": "python -m http.server 8000",
+    "dev": "live-server --port=8000 --open=/index.html",
+    "build": "npm run minify && npm run optimize",
+    "minify": "terser modules/*.js --compress --mangle -o dist/app.min.js",
+    "optimize": "html-minifier --collapse-whitespace --remove-comments --minify-css --minify-js index.html -o dist/index.html",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "lint": "eslint modules/*.js",
+    "lint:fix": "eslint modules/*.js --fix",
+    "format": "prettier --write \"**/*.{js,html,css,md}\"",
+    "validate": "npm run lint && npm run test",
+    "deploy": "npm run build && npm run deploy:netlify",
+    "deploy:netlify": "netlify deploy --prod --dir=dist",
+    "deploy:vercel": "vercel --prod",
+    "deploy:github": "gh-pages -d dist",
+    "pwa:generate": "workbox generateSW workbox-config.js",
+    "analyze": "webpack-bundle-analyzer dist/stats.json",
+    "lighthouse": "lighthouse http://localhost:8000 --output=html --output-path=./reports/lighthouse.html",
+    "security": "npm audit && snyk test",
+    "docs": "jsdoc modules/*.js -d docs",
+    "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s"
+  },
+  "keywords": [
+    "ai",
+    "app-builder",
+    "natural-language",
+    "no-code",
+    "pwa",
+    "voice-input",
+    "mcp",
+    "javascript",
+    "web-app",
+    "code-generation"
+  ],
+  "author": {
+    "name": "TalkToApp Team",
+    "email": "team@talktoapp.com",
+    "url": "https://talktoapp.com"
+  },
+  "license": "MIT",
+  "homepage": "https://talktoapp.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/talktoapp/talktoapp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/talktoapp/talktoapp/issues",
+    "email": "bugs@talktoapp.com"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead",
+    "not ie 11"
+  ],
+  "devDependencies": {
+    "@babel/core": "^7.22.0",
+    "@babel/preset-env": "^7.22.0",
+    "@eslint/js": "^8.44.0",
+    "@types/jest": "^29.5.0",
+    "conventional-changelog-cli": "^3.0.0",
+    "eslint": "^8.44.0",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-plugin-accessibility": "^5.0.0",
+    "gh-pages": "^5.0.0",
+    "html-minifier": "^4.0.0",
+    "jest": "^29.5.0",
+    "jest-environment-jsdom": "^29.5.0",
+    "jsdoc": "^4.0.0",
+    "lighthouse": "^10.4.0",
+    "live-server": "^1.2.2",
+    "netlify-cli": "^15.8.0",
+    "prettier": "^3.0.0",
+    "snyk": "^1.1200.0",
+    "terser": "^5.19.0",
+    "vercel": "^31.0.0",
+    "webpack-bundle-analyzer": "^4.9.0",
+    "workbox-cli": "^7.0.0"
+  },
+  "dependencies": {
+    "dompurify": "^3.0.0",
+    "idb": "^7.1.0",
+    "marked": "^5.1.0"
+  },
+  "peerDependencies": {
+    "react": ">=16.8.0",
+    "vue": ">=3.0.0",
+    "@angular/core": ">=15.0.0"
+  },
+  "optionalDependencies": {
+    "canvas": "^2.11.0",
+    "sharp": "^0.32.0"
+  },
+  "files": [
+    "index.html",
+    "manifest.json",
+    "sw.js",
+    "modules/",
+    "config.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "config": {
+    "port": 8000,
+    "host": "localhost"
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "setupFilesAfterEnv": ["<rootDir>/tests/setup.js"],
+    "testMatch": ["<rootDir>/tests/**/*.test.js"],
+    "collectCoverageFrom": [
+      "modules/**/*.js",
+      "!modules/**/*.min.js"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "branches": 80,
+        "functions": 80,
+        "lines": 80,
+        "statements": 80
+      }
+    }
+  },
+  "eslintConfig": {
+    "env": {
+      "browser": true,
+      "es2021": true,
+      "jest": true
+    },
+    "extends": [
+      "eslint:recommended",
+      "prettier"
+    ],
+    "parserOptions": {
+      "ecmaVersion": 2021,
+      "sourceType": "module"
+    },
+    "rules": {
+      "no-console": "warn",
+      "no-unused-vars": "error",
+      "prefer-const": "error",
+      "no-var": "error"
+    },
+    "globals": {
+      "MCPIntegration": "readonly",
+      "AIServices": "readonly",
+      "AppGenerator": "readonly",
+      "PersistenceManager": "readonly"
+    }
+  },
+  "prettier": {
+    "semi": true,
+    "trailingComma": "es5",
+    "singleQuote": true,
+    "printWidth": 100,
+    "tabWidth": 2,
+    "useTabs": false
+  },
+  "workbox": {
+    "globDirectory": "./",
+    "globPatterns": [
+      "**/*.{html,js,css,png,jpg,jpeg,svg,ico,json}"
+    ],
+    "swDest": "sw.js",
+    "runtimeCaching": [
+      {
+        "urlPattern": "^https:\\/\\/api\\.",
+        "handler": "NetworkFirst",
+        "options": {
+          "cacheName": "api-cache",
+          "expiration": {
+            "maxEntries": 100,
+            "maxAgeSeconds": 300
+          }
+        }
+      }
+    ]
+  },
+  "funding": {
+    "type": "opencollective",
+    "url": "https://opencollective.com/talktoapp"
+  },
+  "contributors": [
+    {
+      "name": "AI Assistant",
+      "email": "ai@talktoapp.com",
+      "role": "Lead Developer"
+    }
+  ],
+  "maintainers": [
+    {
+      "name": "TalkToApp Team",
+      "email": "maintainers@talktoapp.com"
+    }
+  ],
+  "directories": {
+    "lib": "./modules",
+    "test": "./tests",
+    "doc": "./docs"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  }
+}

@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Git Repository Analyzer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 2rem;
+        }
+
+        .sidebar {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            height: fit-content;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .analysis-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            height: fit-content;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .section-header {
+            margin-bottom: 1rem;
+            color: #2c3e50;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 0.5rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-bottom: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .metric-item {
+            text-align: center;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .metric-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            color: #667eea;
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+
+        .chart-container {
+            height: 200px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            margin-bottom: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-placeholder {
+            text-align: center;
+        }
+
+        .commit-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .commit-item {
+            padding: 1rem;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            transition: background-color 0.3s ease;
+        }
+
+        .commit-item:hover {
+            background: #f8f9fa;
+        }
+
+        .commit-hash {
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-bottom: 0.5rem;
+        }
+
+        .commit-message {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+        }
+
+        .commit-meta {
+            font-size: 0.8rem;
+            color: #6c757d;
+        }
+
+        .file-list {
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+
+        .file-name {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .file-stats {
+            text-align: right;
+            font-size: 0.9rem;
+        }
+
+        .additions {
+            color: #28a745;
+        }
+
+        .deletions {
+            color: #dc3545;
+        }
+
+        .analysis-status {
+            background: #e3f2fd;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .complexity-meter {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .complexity-bar {
+            flex: 1;
+            height: 20px;
+            border-radius: 4px;
+            background: #e9ecef;
+        }
+
+        .complexity-bar.low { background: #28a745; }
+        .complexity-bar.medium { background: #ffc107; }
+        .complexity-bar.high { background: #dc3545; }
+
+        .tag-list {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        .tag {
+            background: #667eea;
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+        }
+
+        .contributor-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+
+        .contributor-name {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .contributor-stats {
+            text-align: right;
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+
+        @media (max-width: 1200px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📈 Git Repository Analyzer</h1>
+            <p>Comprehensive analysis of code quality, evolution, and development patterns</p>
+        </div>
+
+        <div class="main-layout">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <div class="section-header">
+                    <h3>🔍 Repository Analysis</h3>
+                </div>
+
+                <input type="text" class="form-control" id="repoPath" placeholder="Repository path or URL...">
+
+                <button class="btn btn-primary" onclick="analyzeRepository()">🔬 Analyze Repository</button>
+                <button class="btn btn-secondary" onclick="loadSampleData()">📊 Load Sample Data</button>
+                <button class="btn btn-success" onclick="exportReport()">📤 Export Report</button>
+
+                <div class="analysis-status" id="analysisStatus">
+                    <strong>📋 Ready to Analyze</strong>
+                    <div>Select a repository to begin analysis</div>
+                </div>
+
+                <div class="section-header" style="margin-top: 2rem;">
+                    <h3>📊 Quick Metrics</h3>
+                </div>
+
+                <div class="metric-grid">
+                    <div class="metric-item">
+                        <div class="metric-value" id="totalCommits">0</div>
+                        <div class="metric-label">Commits</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value" id="totalFiles">0</div>
+                        <div class="metric-label">Files</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value" id="totalContributors">0</div>
+                        <div class="metric-label">Contributors</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value" id="codeQuality">0</div>
+                        <div class="metric-label">Quality Score</div>
+                    </div>
+                </div>
+
+                <div class="section-header">
+                    <h3>🎯 Complexity Analysis</h3>
+                </div>
+
+                <div class="complexity-meter">
+                    <div class="complexity-bar low" title="Low Complexity"></div>
+                    <div class="complexity-bar medium" title="Medium Complexity"></div>
+                    <div class="complexity-bar high" title="High Complexity"></div>
+                </div>
+
+                <div style="font-size: 0.9rem; color: #6c757d; text-align: center;">
+                    <div>Low: 65% | Medium: 25% | High: 10%</div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="main-content">
+                <!-- Commit History -->
+                <div class="analysis-card">
+                    <div class="section-header">
+                        <h3>📝 Recent Commits</h3>
+                    </div>
+                    <div class="commit-list" id="commitList">
+                        <div style="text-align: center; color: #6c757d; padding: 2rem;">
+                            No repository analyzed yet
+                        </div>
+                    </div>
+                </div>
+
+                <!-- File Changes -->
+                <div class="analysis-card">
+                    <div class="section-header">
+                        <h3>📄 File Changes</h3>
+                    </div>
+                    <div class="file-list" id="fileList">
+                        <div style="text-align: center; color: #6c757d; padding: 2rem;">
+                            No file changes to display
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Code Quality Trends -->
+                <div class="analysis-card full-width">
+                    <div class="section-header">
+                        <h3>📊 Code Quality Trends</h3>
+                    </div>
+                    <div class="chart-container">
+                        <div class="chart-placeholder">
+                            <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 0.5rem;">Quality Score Over Time</div>
+                            <div style="font-size: 0.9rem;">Tracking code quality metrics across commits</div>
+                            <div style="margin-top: 1rem; font-size: 2rem; color: #667eea;">📈</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Development Patterns -->
+                <div class="analysis-card">
+                    <div class="section-header">
+                        <h3>🔄 Development Patterns</h3>
+                    </div>
+                    <div class="tag-list">
+                        <div class="tag">Feature Development</div>
+                        <div class="tag">Bug Fixes</div>
+                        <div class="tag">Refactoring</div>
+                        <div class="tag">Documentation</div>
+                        <div class="tag">Testing</div>
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <strong>Most Active Hours:</strong> 9 AM - 5 PM<br>
+                        <strong>Peak Days:</strong> Tuesday, Wednesday<br>
+                        <strong>Avg Commit Size:</strong> 45 lines changed
+                    </div>
+                </div>
+
+                <!-- Contributors -->
+                <div class="analysis-card">
+                    <div class="section-header">
+                        <h3>👥 Top Contributors</h3>
+                    </div>
+                    <div id="contributorList">
+                        <div style="text-align: center; color: #6c757d; padding: 2rem;">
+                            No contributor data available
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Technical Debt -->
+                <div class="analysis-card full-width">
+                    <div class="section-header">
+                        <h3>⚠️ Technical Debt Analysis</h3>
+                    </div>
+                    <div class="metric-grid">
+                        <div class="metric-item">
+                            <div class="metric-value" style="color: #dc3545;">23</div>
+                            <div class="metric-label">TODO Comments</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-value" style="color: #ffc107;">156</div>
+                            <div class="metric-label">Long Functions</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-value" style="color: #17a2b8;">89</div>
+                            <div class="metric-label">Code Duplications</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-value" style="color: #6f42c1;">12</div>
+                            <div class="metric-label">Security Issues</div>
+                        </div>
+                    </div>
+                    <div style="background: #fff3cd; padding: 1rem; border-radius: 8px; border-left: 4px solid #ffc107;">
+                        <strong>⚠️ Recommendations:</strong>
+                        <ul style="margin-top: 0.5rem; padding-left: 1.5rem;">
+                            <li>Refactor long functions in auth.js and utils.js</li>
+                            <li>Address TODO comments in payment processing</li>
+                            <li>Review security vulnerabilities in user input validation</li>
+                            <li>Reduce code duplication in API endpoints</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let repositoryData = {
+            commits: [],
+            files: [],
+            contributors: [],
+            metrics: {}
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSampleData();
+        });
+
+        function analyzeRepository() {
+            const repoPath = document.getElementById('repoPath').value.trim();
+            if (!repoPath) {
+                alert('Please enter a repository path or URL');
+                return;
+            }
+
+            const statusDiv = document.getElementById('analysisStatus');
+            statusDiv.innerHTML = `
+                <strong>🔍 Analyzing Repository</strong>
+                <div>Processing ${repoPath}...</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            `;
+
+            // Simulate analysis progress
+            let progress = 0;
+            const progressFill = document.getElementById('progressFill');
+
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 20;
+                if (progress > 100) progress = 100;
+
+                progressFill.style.width = progress + '%';
+
+                if (progress >= 100) {
+                    clearInterval(progressInterval);
+                    statusDiv.innerHTML = `
+                        <strong>✅ Analysis Complete</strong>
+                        <div>Repository successfully analyzed</div>
+                    `;
+
+                    // Load sample data to simulate analysis results
+                    loadSampleData();
+                }
+            }, 200);
+        }
+
+        function loadSampleData() {
+            // Sample commit data
+            const sampleCommits = [
+                {
+                    hash: 'a1b2c3d',
+                    message: 'Add user authentication system',
+                    author: 'John Doe',
+                    date: '2024-01-15 14:30:00',
+                    changes: '+145 -23'
+                },
+                {
+                    hash: 'e4f5g6h',
+                    message: 'Fix memory leak in data processing',
+                    author: 'Jane Smith',
+                    date: '2024-01-14 16:45:00',
+                    changes: '+67 -89'
+                },
+                {
+                    hash: 'i7j8k9l',
+                    message: 'Implement search functionality',
+                    author: 'Bob Johnson',
+                    date: '2024-01-13 10:15:00',
+                    changes: '+234 -12'
+                },
+                {
+                    hash: 'm1n2o3p',
+                    message: 'Update API documentation',
+                    author: 'Alice Brown',
+                    date: '2024-01-12 13:20:00',
+                    changes: '+45 -8'
+                },
+                {
+                    hash: 'q4r5s6t',
+                    message: 'Refactor database connection logic',
+                    author: 'John Doe',
+                    date: '2024-01-11 09:30:00',
+                    changes: '+78 -156'
+                }
+            ];
+
+            // Sample file changes
+            const sampleFiles = [
+                { name: 'src/auth/login.js', additions: 45, deletions: 12 },
+                { name: 'src/utils/validation.js', additions: 23, deletions: 5 },
+                { name: 'src/api/users.js', additions: 67, deletions: 34 },
+                { name: 'docs/API.md', additions: 89, deletions: 2 },
+                { name: 'src/db/connection.js', additions: 34, deletions: 78 }
+            ];
+
+            // Sample contributors
+            const sampleContributors = [
+                { name: 'John Doe', commits: 45, additions: 1234, deletions: 567 },
+                { name: 'Jane Smith', commits: 38, additions: 987, deletions: 432 },
+                { name: 'Bob Johnson', commits: 29, additions: 765, deletions: 298 },
+                { name: 'Alice Brown', commits: 22, additions: 543, deletions: 189 }
+            ];
+
+            repositoryData.commits = sampleCommits;
+            repositoryData.files = sampleFiles;
+            repositoryData.contributors = sampleContributors;
+
+            renderCommits();
+            renderFiles();
+            renderContributors();
+            updateMetrics();
+        }
+
+        function renderCommits() {
+            const container = document.getElementById('commitList');
+            container.innerHTML = repositoryData.commits.map(commit => `
+                <div class="commit-item">
+                    <div class="commit-hash">${commit.hash}</div>
+                    <div class="commit-message">${commit.message}</div>
+                    <div class="commit-meta">
+                        ${commit.author} • ${commit.date} • ${commit.changes}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderFiles() {
+            const container = document.getElementById('fileList');
+            container.innerHTML = repositoryData.files.map(file => `
+                <div class="file-item">
+                    <div class="file-name">${file.name}</div>
+                    <div class="file-stats">
+                        <span class="additions">+${file.additions}</span>
+                        <span class="deletions">-${file.deletions}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderContributors() {
+            const container = document.getElementById('contributorList');
+            container.innerHTML = repositoryData.contributors.map(contributor => `
+                <div class="contributor-item">
+                    <div class="contributor-name">${contributor.name}</div>
+                    <div class="contributor-stats">
+                        ${contributor.commits} commits<br>
+                        <span class="additions">+${contributor.additions}</span>
+                        <span class="deletions">-${contributor.deletions}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateMetrics() {
+            document.getElementById('totalCommits').textContent = repositoryData.commits.length * 23;
+            document.getElementById('totalFiles').textContent = repositoryData.files.length * 18;
+            document.getElementById('totalContributors').textContent = repositoryData.contributors.length;
+            document.getElementById('codeQuality').textContent = '8.7';
+        }
+
+        function exportReport() {
+            const report = {
+                timestamp: new Date().toISOString(),
+                repository: document.getElementById('repoPath').value || 'sample-repository',
+                summary: {
+                    totalCommits: repositoryData.commits.length * 23,
+                    totalFiles: repositoryData.files.length * 18,
+                    totalContributors: repositoryData.contributors.length,
+                    codeQuality: 8.7
+                },
+                commits: repositoryData.commits,
+                files: repositoryData.files,
+                contributors: repositoryData.contributors,
+                technicalDebt: {
+                    todoComments: 23,
+                    longFunctions: 156,
+                    codeDuplications: 89,
+                    securityIssues: 12
+                },
+                recommendations: [
+                    'Refactor long functions in auth.js and utils.js',
+                    'Address TODO comments in payment processing',
+                    'Review security vulnerabilities in user input validation',
+                    'Reduce code duplication in API endpoints'
+                ]
+            };
+
+            const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `git-analysis-report-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>

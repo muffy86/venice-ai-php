@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Content Archiver</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #2c5364 0%, #203a43 50%, #0f2027 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .main-layout {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 2rem;
+        }
+
+        .sidebar {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            height: fit-content;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .archive-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            height: fit-content;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .section-header {
+            margin-bottom: 1rem;
+            color: #2c3e50;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 0.5rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.8rem;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #2c5364;
+        }
+
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-bottom: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #2c5364 0%, #203a43 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-2px);
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .metric-item {
+            text-align: center;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .metric-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+            color: #2c5364;
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+
+        .archive-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .archive-item {
+            padding: 1rem;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            transition: background-color 0.3s ease;
+            cursor: pointer;
+        }
+
+        .archive-item:hover {
+            background: #f8f9fa;
+        }
+
+        .archive-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #2c3e50;
+        }
+
+        .archive-url {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-bottom: 0.5rem;
+            word-break: break-all;
+        }
+
+        .archive-meta {
+            font-size: 0.8rem;
+            color: #6c757d;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .status-badge {
+            padding: 0.2rem 0.5rem;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-processing {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .capture-form {
+            margin-bottom: 2rem;
+        }
+
+        .search-form {
+            margin-bottom: 1.5rem;
+        }
+
+        .category-filter {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        .category-btn {
+            padding: 0.4rem 0.8rem;
+            border: 2px solid #e9ecef;
+            border-radius: 20px;
+            background: white;
+            color: #6c757d;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .category-btn.active {
+            background: #2c5364;
+            color: white;
+            border-color: #2c5364;
+        }
+
+        .stats-chart {
+            height: 200px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            margin-bottom: 1rem;
+        }
+
+        .chart-placeholder {
+            text-align: center;
+        }
+
+        .capture-status {
+            background: #e3f2fd;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #2c5364 0%, #203a43 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .queue-list {
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .queue-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+        }
+
+        .queue-url {
+            font-size: 0.9rem;
+            color: #2c3e50;
+            flex: 1;
+            margin-right: 1rem;
+            word-break: break-all;
+        }
+
+        .queue-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-small {
+            padding: 0.3rem 0.6rem;
+            font-size: 0.8rem;
+            width: auto;
+            margin: 0;
+        }
+
+        .metadata-display {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .metadata-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.3rem 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .metadata-item:last-child {
+            border-bottom: none;
+        }
+
+        .metadata-label {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .metadata-value {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 1200px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🗄️ Web Content Archiver</h1>
+            <p>Automated capture, storage, and organization of web content</p>
+        </div>
+
+        <div class="main-layout">
+            <!-- Sidebar -->
+            <div class="sidebar">
+                <div class="section-header">
+                    <h3>🌐 Capture Web Content</h3>
+                </div>
+
+                <div class="capture-form">
+                    <input type="url" class="form-control" id="urlInput" placeholder="Enter URL to archive...">
+                    <select class="form-control" id="captureType">
+                        <option value="full">Full Page Capture</option>
+                        <option value="content">Content Only</option>
+                        <option value="metadata">Metadata Only</option>
+                        <option value="screenshot">Screenshot Only</option>
+                    </select>
+                </div>
+
+                <button class="btn btn-primary" onclick="captureUrl()">📸 Capture Now</button>
+                <button class="btn btn-secondary" onclick="addToQueue()">➕ Add to Queue</button>
+                <button class="btn btn-success" onclick="exportArchive()">📤 Export Archive</button>
+
+                <div class="capture-status" id="captureStatus">
+                    <strong>📋 Ready to Capture</strong>
+                    <div>Enter a URL to begin archiving</div>
+                </div>
+
+                <div class="section-header" style="margin-top: 2rem;">
+                    <h3>📊 Archive Statistics</h3>
+                </div>
+
+                <div class="metric-grid">
+                    <div class="metric-item">
+                        <div class="metric-value" id="totalArchives">0</div>
+                        <div class="metric-label">Archived</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value" id="totalSize">0 MB</div>
+                        <div class="metric-label">Size</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value" id="queueCount">0</div>
+                        <div class="metric-label">Queued</div>
+                    </div>
+                </div>
+
+                <div class="section-header">
+                    <h3>🎯 Quick Actions</h3>
+                </div>
+
+                <button class="btn btn-secondary" onclick="processQueue()">⚡ Process Queue</button>
+                <button class="btn btn-secondary" onclick="generateReport()">📋 Generate Report</button>
+                <button class="btn btn-danger" onclick="clearCompleted()">🗑️ Clear Completed</button>
+            </div>
+
+            <!-- Main Content -->
+            <div class="main-content">
+                <!-- Archive Browser -->
+                <div class="archive-card">
+                    <div class="section-header">
+                        <h3>📂 Archive Browser</h3>
+                    </div>
+
+                    <div class="search-form">
+                        <input type="text" class="form-control" id="searchInput" placeholder="Search archives..." onkeyup="filterArchives()">
+                    </div>
+
+                    <div class="category-filter">
+                        <div class="category-btn active" onclick="filterByCategory('all')">All</div>
+                        <div class="category-btn" onclick="filterByCategory('webpage')">Webpages</div>
+                        <div class="category-btn" onclick="filterByCategory('article')">Articles</div>
+                        <div class="category-btn" onclick="filterByCategory('document')">Documents</div>
+                        <div class="category-btn" onclick="filterByCategory('media')">Media</div>
+                    </div>
+
+                    <div class="archive-list" id="archiveList">
+                        <div style="text-align: center; color: #6c757d; padding: 2rem;">
+                            No archives yet
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Capture Queue -->
+                <div class="archive-card">
+                    <div class="section-header">
+                        <h3>⏳ Capture Queue</h3>
+                    </div>
+                    <div class="queue-list" id="queueList">
+                        <div style="text-align: center; color: #6c757d; padding: 2rem;">
+                            No items in queue
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Storage Analytics -->
+                <div class="archive-card full-width">
+                    <div class="section-header">
+                        <h3>📊 Storage Analytics</h3>
+                    </div>
+                    <div class="stats-chart">
+                        <div class="chart-placeholder">
+                            <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 0.5rem;">Archive Growth Over Time</div>
+                            <div style="font-size: 0.9rem;">Tracking archived content and storage usage</div>
+                            <div style="margin-top: 1rem; font-size: 2rem; color: #2c5364;">📈</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Content Preview -->
+                <div class="archive-card">
+                    <div class="section-header">
+                        <h3>👁️ Content Preview</h3>
+                    </div>
+                    <div id="contentPreview">
+                        <div style="text-align: center; color: #6c757d; padding: 2rem;">
+                            Select an archive to preview
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Metadata -->
+                <div class="archive-card">
+                    <div class="section-header">
+                        <h3>🏷️ Metadata</h3>
+                    </div>
+                    <div class="metadata-display" id="metadataDisplay">
+                        <div style="text-align: center; color: #6c757d; padding: 2rem;">
+                            No metadata available
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="archive-card full-width">
+                    <div class="section-header">
+                        <h3>🕒 Recent Activity</h3>
+                    </div>
+                    <div id="recentActivity">
+                        <div style="text-align: center; color: #6c757d; padding: 2rem;">
+                            No recent activity
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let archiveData = {
+            archives: [],
+            queue: [],
+            activity: []
+        };
+
+        let currentFilter = 'all';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadSampleData();
+        });
+
+        function captureUrl() {
+            const url = document.getElementById('urlInput').value.trim();
+            const captureType = document.getElementById('captureType').value;
+
+            if (!url) {
+                alert('Please enter a valid URL');
+                return;
+            }
+
+            const statusDiv = document.getElementById('captureStatus');
+            statusDiv.innerHTML = `
+                <strong>📸 Capturing Content</strong>
+                <div>Processing ${url}...</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            `;
+
+            // Simulate capture progress
+            let progress = 0;
+            const progressFill = document.getElementById('progressFill');
+
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 25;
+                if (progress > 100) progress = 100;
+
+                progressFill.style.width = progress + '%';
+
+                if (progress >= 100) {
+                    clearInterval(progressInterval);
+                    statusDiv.innerHTML = `
+                        <strong>✅ Capture Complete</strong>
+                        <div>Content successfully archived</div>
+                    `;
+
+                    // Add to archives
+                    addArchive(url, captureType);
+                    document.getElementById('urlInput').value = '';
+                }
+            }, 300);
+        }
+
+        function addToQueue() {
+            const url = document.getElementById('urlInput').value.trim();
+            if (!url) {
+                alert('Please enter a valid URL');
+                return;
+            }
+
+            archiveData.queue.push({
+                id: Date.now(),
+                url: url,
+                type: document.getElementById('captureType').value,
+                status: 'pending',
+                addedAt: new Date().toISOString()
+            });
+
+            document.getElementById('urlInput').value = '';
+            renderQueue();
+            updateStats();
+            addActivity(`Added ${url} to capture queue`);
+        }
+
+        function addArchive(url, type) {
+            const archive = {
+                id: Date.now(),
+                title: generateTitle(url),
+                url: url,
+                type: type,
+                category: detectCategory(url),
+                status: 'completed',
+                capturedAt: new Date().toISOString(),
+                size: Math.floor(Math.random() * 5000) + 500, // KB
+                metadata: generateMetadata(url)
+            };
+
+            archiveData.archives.unshift(archive);
+            renderArchives();
+            updateStats();
+            addActivity(`Archived: ${archive.title}`);
+        }
+
+        function generateTitle(url) {
+            const titles = [
+                'Understanding Modern Web Development',
+                'Best Practices for API Design',
+                'Machine Learning Fundamentals',
+                'Building Scalable Applications',
+                'Web Security Guidelines',
+                'Performance Optimization Tips',
+                'Database Design Principles',
+                'Cloud Computing Overview'
+            ];
+            return titles[Math.floor(Math.random() * titles.length)];
+        }
+
+        function detectCategory(url) {
+            const categories = ['webpage', 'article', 'document', 'media'];
+            return categories[Math.floor(Math.random() * categories.length)];
+        }
+
+        function generateMetadata(url) {
+            return {
+                title: generateTitle(url),
+                author: 'Content Author',
+                publishDate: new Date().toISOString().split('T')[0],
+                description: 'Archived web content with metadata',
+                keywords: ['web', 'development', 'technology'],
+                language: 'en',
+                contentType: 'text/html'
+            };
+        }
+
+        function loadSampleData() {
+            // Sample archives
+            const sampleArchives = [
+                {
+                    id: 1,
+                    title: 'Modern JavaScript Development Guide',
+                    url: 'https://example.com/js-guide',
+                    type: 'full',
+                    category: 'article',
+                    status: 'completed',
+                    capturedAt: '2024-01-15T10:30:00Z',
+                    size: 2340,
+                    metadata: {
+                        title: 'Modern JavaScript Development Guide',
+                        author: 'Tech Writer',
+                        publishDate: '2024-01-10',
+                        description: 'Comprehensive guide to modern JavaScript development',
+                        keywords: ['javascript', 'development', 'web'],
+                        language: 'en',
+                        contentType: 'text/html'
+                    }
+                },
+                {
+                    id: 2,
+                    title: 'API Design Best Practices',
+                    url: 'https://example.com/api-design',
+                    type: 'content',
+                    category: 'document',
+                    status: 'completed',
+                    capturedAt: '2024-01-14T14:20:00Z',
+                    size: 1876,
+                    metadata: {
+                        title: 'API Design Best Practices',
+                        author: 'Software Engineer',
+                        publishDate: '2024-01-12',
+                        description: 'Best practices for designing robust APIs',
+                        keywords: ['api', 'design', 'backend'],
+                        language: 'en',
+                        contentType: 'text/html'
+                    }
+                },
+                {
+                    id: 3,
+                    title: 'Machine Learning Tutorial',
+                    url: 'https://example.com/ml-tutorial',
+                    type: 'full',
+                    category: 'webpage',
+                    status: 'completed',
+                    capturedAt: '2024-01-13T09:15:00Z',
+                    size: 3421,
+                    metadata: {
+                        title: 'Machine Learning Tutorial',
+                        author: 'Data Scientist',
+                        publishDate: '2024-01-08',
+                        description: 'Introduction to machine learning concepts',
+                        keywords: ['machine learning', 'ai', 'tutorial'],
+                        language: 'en',
+                        contentType: 'text/html'
+                    }
+                }
+            ];
+
+            // Sample queue items
+            const sampleQueue = [
+                {
+                    id: 4,
+                    url: 'https://example.com/pending-article',
+                    type: 'full',
+                    status: 'pending',
+                    addedAt: '2024-01-15T16:45:00Z'
+                },
+                {
+                    id: 5,
+                    url: 'https://example.com/processing-doc',
+                    type: 'content',
+                    status: 'processing',
+                    addedAt: '2024-01-15T16:40:00Z'
+                }
+            ];
+
+            archiveData.archives = sampleArchives;
+            archiveData.queue = sampleQueue;
+
+            renderArchives();
+            renderQueue();
+            updateStats();
+            renderRecentActivity();
+        }
+
+        function renderArchives() {
+            const container = document.getElementById('archiveList');
+            const filteredArchives = archiveData.archives.filter(archive => {
+                const matchesFilter = currentFilter === 'all' || archive.category === currentFilter;
+                const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+                const matchesSearch = archive.title.toLowerCase().includes(searchTerm) ||
+                                      archive.url.toLowerCase().includes(searchTerm);
+                return matchesFilter && matchesSearch;
+            });
+
+            if (filteredArchives.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: #6c757d; padding: 2rem;">No archives match your filter</div>';
+                return;
+            }
+
+            container.innerHTML = filteredArchives.map(archive => `
+                <div class="archive-item" onclick="selectArchive(${archive.id})">
+                    <div class="archive-title">${archive.title}</div>
+                    <div class="archive-url">${archive.url}</div>
+                    <div class="archive-meta">
+                        <span>${new Date(archive.capturedAt).toLocaleDateString()} • ${archive.size} KB</span>
+                        <span class="status-badge status-${archive.status}">${archive.status}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderQueue() {
+            const container = document.getElementById('queueList');
+
+            if (archiveData.queue.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: #6c757d; padding: 2rem;">No items in queue</div>';
+                return;
+            }
+
+            container.innerHTML = archiveData.queue.map(item => `
+                <div class="queue-item">
+                    <div class="queue-url">${item.url}</div>
+                    <div class="queue-actions">
+                        <button class="btn btn-success btn-small" onclick="processQueueItem(${item.id})">▶️</button>
+                        <button class="btn btn-danger btn-small" onclick="removeFromQueue(${item.id})">❌</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderRecentActivity() {
+            const container = document.getElementById('recentActivity');
+
+            if (archiveData.activity.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: #6c757d; padding: 2rem;">No recent activity</div>';
+                return;
+            }
+
+            container.innerHTML = archiveData.activity.slice(0, 10).map(activity => `
+                <div style="padding: 0.5rem; border-bottom: 1px solid #e9ecef; font-size: 0.9rem;">
+                    <span style="color: #6c757d;">${new Date(activity.timestamp).toLocaleTimeString()}</span> - ${activity.message}
+                </div>
+            `).join('');
+        }
+
+        function updateStats() {
+            document.getElementById('totalArchives').textContent = archiveData.archives.length;
+            document.getElementById('totalSize').textContent = (archiveData.archives.reduce((sum, a) => sum + a.size, 0) / 1024).toFixed(1) + ' MB';
+            document.getElementById('queueCount').textContent = archiveData.queue.length;
+        }
+
+        function selectArchive(id) {
+            const archive = archiveData.archives.find(a => a.id === id);
+            if (!archive) return;
+
+            // Update content preview
+            document.getElementById('contentPreview').innerHTML = `
+                <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px;">
+                    <h4>${archive.title}</h4>
+                    <p style="color: #6c757d; margin-top: 0.5rem;">
+                        This is a preview of the archived content. The full content would be displayed here
+                        with proper formatting and all captured elements.
+                    </p>
+                    <div style="margin-top: 1rem; padding: 1rem; background: white; border-radius: 4px;">
+                        <strong>Sample Content:</strong><br>
+                        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor
+                        incididunt ut labore et dolore magna aliqua...
+                    </div>
+                </div>
+            `;
+
+            // Update metadata display
+            const metadata = archive.metadata;
+            document.getElementById('metadataDisplay').innerHTML = Object.entries(metadata).map(([key, value]) => `
+                <div class="metadata-item">
+                    <div class="metadata-label">${key.charAt(0).toUpperCase() + key.slice(1)}:</div>
+                    <div class="metadata-value">${Array.isArray(value) ? value.join(', ') : value}</div>
+                </div>
+            `).join('');
+
+            addActivity(`Viewed archive: ${archive.title}`);
+        }
+
+        function filterByCategory(category) {
+            currentFilter = category;
+
+            // Update button states
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            renderArchives();
+        }
+
+        function filterArchives() {
+            renderArchives();
+        }
+
+        function processQueue() {
+            if (archiveData.queue.length === 0) {
+                alert('No items in queue to process');
+                return;
+            }
+
+            archiveData.queue.forEach(item => {
+                if (item.status === 'pending') {
+                    setTimeout(() => {
+                        addArchive(item.url, item.type);
+                        removeFromQueue(item.id);
+                    }, Math.random() * 2000 + 500);
+                }
+            });
+
+            addActivity('Started processing queue items');
+        }
+
+        function processQueueItem(id) {
+            const item = archiveData.queue.find(q => q.id === id);
+            if (item) {
+                addArchive(item.url, item.type);
+                removeFromQueue(id);
+            }
+        }
+
+        function removeFromQueue(id) {
+            archiveData.queue = archiveData.queue.filter(q => q.id !== id);
+            renderQueue();
+            updateStats();
+        }
+
+        function addActivity(message) {
+            archiveData.activity.unshift({
+                timestamp: new Date().toISOString(),
+                message: message
+            });
+            renderRecentActivity();
+        }
+
+        function exportArchive() {
+            const exportData = {
+                timestamp: new Date().toISOString(),
+                totalArchives: archiveData.archives.length,
+                totalSize: archiveData.archives.reduce((sum, a) => sum + a.size, 0),
+                archives: archiveData.archives,
+                metadata: {
+                    exportFormat: 'json',
+                    version: '1.0',
+                    application: 'Web Content Archiver'
+                }
+            };
+
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `archive-export-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            addActivity('Exported archive data');
+        }
+
+        function generateReport() {
+            const report = {
+                summary: {
+                    totalArchives: archiveData.archives.length,
+                    totalSize: archiveData.archives.reduce((sum, a) => sum + a.size, 0),
+                    categories: {
+                        webpage: archiveData.archives.filter(a => a.category === 'webpage').length,
+                        article: archiveData.archives.filter(a => a.category === 'article').length,
+                        document: archiveData.archives.filter(a => a.category === 'document').length,
+                        media: archiveData.archives.filter(a => a.category === 'media').length
+                    }
+                },
+                archives: archiveData.archives,
+                queueItems: archiveData.queue,
+                recentActivity: archiveData.activity.slice(0, 20)
+            };
+
+            const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `archive-report-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            addActivity('Generated comprehensive archive report');
+        }
+
+        function clearCompleted() {
+            const completedCount = archiveData.archives.filter(a => a.status === 'completed').length;
+            archiveData.archives = archiveData.archives.filter(a => a.status !== 'completed');
+            renderArchives();
+            updateStats();
+            addActivity(`Cleared ${completedCount} completed archives`);
+        }
+    </script>
+</body>
+</html>

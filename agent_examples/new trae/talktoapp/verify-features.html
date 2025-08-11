@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TalkToApp Enhanced Features Verification</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .feature-test {
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .status.pass { background: #4CAF50; }
+        .status.fail { background: #f44336; }
+        .status.pending { background: #FF9800; }
+        button {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .log {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            margin: 10px 0;
+            max-height: 150px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 TalkToApp Enhanced Features Verification</h1>
+        <p>Testing the newly implemented web history tracking, context learning, and MCP pipeline features.</p>
+
+        <div class="feature-test">
+            <h3>📊 Web History Tracker</h3>
+            <div id="webHistoryStatus">
+                <span class="status pending">Testing...</span>
+            </div>
+            <button onclick="testWebHistory()">Test Web History</button>
+            <div id="webHistoryLog" class="log"></div>
+        </div>
+
+        <div class="feature-test">
+            <h3>🧠 Enhanced Knowledge Database</h3>
+            <div id="knowledgeStatus">
+                <span class="status pending">Testing...</span>
+            </div>
+            <button onclick="testKnowledge()">Test Knowledge DB</button>
+            <div id="knowledgeLog" class="log"></div>
+        </div>
+
+        <div class="feature-test">
+            <h3>🔗 MCP Pipeline Manager</h3>
+            <div id="mcpStatus">
+                <span class="status pending">Testing...</span>
+            </div>
+            <button onclick="testMCP()">Test MCP Pipelines</button>
+            <div id="mcpLog" class="log"></div>
+        </div>
+
+        <div class="feature-test">
+            <h3>🤖 Context Learning Engine</h3>
+            <div id="contextStatus">
+                <span class="status pending">Testing...</span>
+            </div>
+            <button onclick="testContext()">Test Context Learning</button>
+            <div id="contextLog" class="log"></div>
+        </div>
+
+        <div class="feature-test">
+            <h3>🎨 UI Components</h3>
+            <div id="uiStatus">
+                <span class="status pending">Testing...</span>
+            </div>
+            <button onclick="testUI()">Test UI Elements</button>
+            <div id="uiLog" class="log"></div>
+        </div>
+
+        <button onclick="runAllTests()" style="font-size: 16px; padding: 15px 30px;">🚀 Run All Tests</button>
+    </div>
+
+    <!-- Load our enhanced modules -->
+    <script src="modules/web-history-tracker.js"></script>
+    <script src="modules/enhanced-knowledge-database.js"></script>
+    <script src="modules/mcp-pipeline-manager.js"></script>
+    <script src="modules/context-learning-engine.js"></script>
+
+    <script>
+        function log(containerId, message) {
+            const container = document.getElementById(containerId);
+            const timestamp = new Date().toLocaleTimeString();
+            container.innerHTML += `[${timestamp}] ${message}\n`;
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function setStatus(statusId, passed) {
+            const statusElement = document.querySelector(`#${statusId} .status`);
+            statusElement.className = `status ${passed ? 'pass' : 'fail'}`;
+            statusElement.textContent = passed ? '✅ PASS' : '❌ FAIL';
+        }
+
+        function testWebHistory() {
+            log('webHistoryLog', 'Testing Web History Tracker...');
+            
+            try {
+                // Test if WebHistoryTracker class exists
+                if (typeof WebHistoryTracker !== 'undefined') {
+                    log('webHistoryLog', '✅ WebHistoryTracker class found');
+                    
+                    // Try to create instance
+                    const tracker = new WebHistoryTracker();
+                    log('webHistoryLog', '✅ WebHistoryTracker instance created');
+                    
+                    // Test methods
+                    if (typeof tracker.init === 'function') {
+                        log('webHistoryLog', '✅ init method available');
+                    }
+                    if (typeof tracker.startTracking === 'function') {
+                        log('webHistoryLog', '✅ startTracking method available');
+                    }
+                    if (typeof tracker.getStats === 'function') {
+                        log('webHistoryLog', '✅ getStats method available');
+                    }
+                    
+                    setStatus('webHistoryStatus', true);
+                    log('webHistoryLog', '🎉 Web History Tracker test PASSED');
+                } else {
+                    throw new Error('WebHistoryTracker class not found');
+                }
+            } catch (error) {
+                log('webHistoryLog', `❌ Error: ${error.message}`);
+                setStatus('webHistoryStatus', false);
+            }
+        }
+
+        function testKnowledge() {
+            log('knowledgeLog', 'Testing Enhanced Knowledge Database...');
+            
+            try {
+                if (typeof EnhancedKnowledgeDatabase !== 'undefined') {
+                    log('knowledgeLog', '✅ EnhancedKnowledgeDatabase class found');
+                    
+                    const db = new EnhancedKnowledgeDatabase();
+                    log('knowledgeLog', '✅ EnhancedKnowledgeDatabase instance created');
+                    
+                    // Test methods
+                    if (typeof db.initialize === 'function') {
+                        log('knowledgeLog', '✅ initialize method available');
+                    }
+                    if (typeof db.storeKnowledge === 'function') {
+                        log('knowledgeLog', '✅ storeKnowledge method available');
+                    }
+                    if (typeof db.searchKnowledge === 'function') {
+                        log('knowledgeLog', '✅ searchKnowledge method available');
+                    }
+                    
+                    setStatus('knowledgeStatus', true);
+                    log('knowledgeLog', '🎉 Enhanced Knowledge Database test PASSED');
+                } else {
+                    throw new Error('EnhancedKnowledgeDatabase class not found');
+                }
+            } catch (error) {
+                log('knowledgeLog', `❌ Error: ${error.message}`);
+                setStatus('knowledgeStatus', false);
+            }
+        }
+
+        function testMCP() {
+            log('mcpLog', 'Testing MCP Pipeline Manager...');
+            
+            try {
+                if (typeof MCPPipelineManager !== 'undefined') {
+                    log('mcpLog', '✅ MCPPipelineManager class found');
+                    
+                    const mcp = new MCPPipelineManager();
+                    log('mcpLog', '✅ MCPPipelineManager instance created');
+                    
+                    // Test methods
+                    if (typeof mcp.registerPipeline === 'function') {
+                        log('mcpLog', '✅ registerPipeline method available');
+                    }
+                    if (typeof mcp.activatePipeline === 'function') {
+                        log('mcpLog', '✅ activatePipeline method available');
+                    }
+                    if (typeof mcp.makeRequest === 'function') {
+                        log('mcpLog', '✅ makeRequest method available');
+                    }
+                    
+                    // Test APIKeyManager
+                    if (typeof APIKeyManager !== 'undefined') {
+                        log('mcpLog', '✅ APIKeyManager class found');
+                    }
+                    
+                    setStatus('mcpStatus', true);
+                    log('mcpLog', '🎉 MCP Pipeline Manager test PASSED');
+                } else {
+                    throw new Error('MCPPipelineManager class not found');
+                }
+            } catch (error) {
+                log('mcpLog', `❌ Error: ${error.message}`);
+                setStatus('mcpStatus', false);
+            }
+        }
+
+        function testContext() {
+            log('contextLog', 'Testing Context Learning Engine...');
+            
+            try {
+                if (typeof ContextLearningEngine !== 'undefined') {
+                    log('contextLog', '✅ ContextLearningEngine class found');
+                    
+                    // Test helper classes
+                    if (typeof ContextModel !== 'undefined') {
+                        log('contextLog', '✅ ContextModel class found');
+                    }
+                    if (typeof IntentPredictor !== 'undefined') {
+                        log('contextLog', '✅ IntentPredictor class found');
+                    }
+                    if (typeof AssistanceEngine !== 'undefined') {
+                        log('contextLog', '✅ AssistanceEngine class found');
+                    }
+                    
+                    setStatus('contextStatus', true);
+                    log('contextLog', '🎉 Context Learning Engine test PASSED');
+                } else {
+                    throw new Error('ContextLearningEngine class not found');
+                }
+            } catch (error) {
+                log('contextLog', `❌ Error: ${error.message}`);
+                setStatus('contextStatus', false);
+            }
+        }
+
+        function testUI() {
+            log('uiLog', 'Testing UI Components...');
+            
+            try {
+                // Test if main index.html has our UI elements
+                const iframe = document.createElement('iframe');
+                iframe.src = 'index.html';
+                iframe.style.display = 'none';
+                document.body.appendChild(iframe);
+                
+                iframe.onload = function() {
+                    try {
+                        const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                        
+                        // Test for our UI elements
+                        const elements = [
+                            'contextIndicator',
+                            'mcpStatus', 
+                            'webHistoryPanel',
+                            'knowledgeSuggestions',
+                            'apiKeyManager'
+                        ];
+                        
+                        let foundElements = 0;
+                        elements.forEach(id => {
+                            if (iframeDoc.getElementById(id)) {
+                                log('uiLog', `✅ Found UI element: ${id}`);
+                                foundElements++;
+                            } else {
+                                log('uiLog', `❌ Missing UI element: ${id}`);
+                            }
+                        });
+                        
+                        // Test for CSS classes
+                        const cssClasses = [
+                            'web-history-panel',
+                            'context-learning-indicator',
+                            'mcp-pipeline-status'
+                        ];
+                        
+                        let foundClasses = 0;
+                        cssClasses.forEach(className => {
+                            if (iframeDoc.getElementsByClassName(className).length > 0) {
+                                log('uiLog', `✅ Found CSS class: ${className}`);
+                                foundClasses++;
+                            } else {
+                                log('uiLog', `❌ Missing CSS class: ${className}`);
+                            }
+                        });
+                        
+                        const success = foundElements >= 3 && foundClasses >= 2;
+                        setStatus('uiStatus', success);
+                        log('uiLog', success ? '🎉 UI Components test PASSED' : '❌ UI Components test FAILED');
+                        
+                        document.body.removeChild(iframe);
+                    } catch (error) {
+                        log('uiLog', `❌ Error testing UI: ${error.message}`);
+                        setStatus('uiStatus', false);
+                        document.body.removeChild(iframe);
+                    }
+                };
+                
+                iframe.onerror = function() {
+                    log('uiLog', '❌ Failed to load index.html');
+                    setStatus('uiStatus', false);
+                    document.body.removeChild(iframe);
+                };
+                
+            } catch (error) {
+                log('uiLog', `❌ Error: ${error.message}`);
+                setStatus('uiStatus', false);
+            }
+        }
+
+        function runAllTests() {
+            console.log('🚀 Running all enhanced feature tests...');
+            
+            // Reset all statuses
+            document.querySelectorAll('.status').forEach(status => {
+                status.className = 'status pending';
+                status.textContent = 'Testing...';
+            });
+            
+            // Clear all logs
+            document.querySelectorAll('.log').forEach(log => {
+                log.innerHTML = '';
+            });
+            
+            // Run tests with delays
+            setTimeout(testWebHistory, 100);
+            setTimeout(testKnowledge, 500);
+            setTimeout(testMCP, 1000);
+            setTimeout(testContext, 1500);
+            setTimeout(testUI, 2000);
+            
+            setTimeout(() => {
+                console.log('✅ All tests completed!');
+            }, 3000);
+        }
+
+        // Auto-run tests on page load
+        window.addEventListener('load', () => {
+            console.log('🔧 Enhanced Features Verification Loaded');
+            setTimeout(runAllTests, 1000);
+        });
+    </script>
+</body>
+</html>

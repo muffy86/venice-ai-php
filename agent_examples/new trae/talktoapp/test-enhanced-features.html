@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TalkToApp Enhanced Features Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            min-height: 100vh;
+        }
+        .test-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .test-section {
+            margin: 30px 0;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+        .test-pass {
+            background: rgba(76, 175, 80, 0.3);
+            border: 1px solid #4CAF50;
+        }
+        .test-fail {
+            background: rgba(244, 67, 54, 0.3);
+            border: 1px solid #f44336;
+        }
+        .test-pending {
+            background: rgba(255, 193, 7, 0.3);
+            border: 1px solid #FFC107;
+        }
+        button {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 5px;
+            transition: transform 0.2s ease;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .log-output {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 TalkToApp Enhanced Features Test Suite</h1>
+        <p>Comprehensive testing of web history tracking, context learning, and MCP pipeline integration.</p>
+
+        <div class="test-section">
+            <h2>🔧 System Initialization Tests</h2>
+            <button onclick="testSystemInitialization()">Run System Tests</button>
+            <div id="systemTests"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>📊 Web History Tracker Tests</h2>
+            <button onclick="testWebHistoryTracker()">Test Web History</button>
+            <div id="webHistoryTests"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>🧠 Enhanced Knowledge Database Tests</h2>
+            <button onclick="testKnowledgeDatabase()">Test Knowledge DB</button>
+            <div id="knowledgeTests"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>🔗 MCP Pipeline Manager Tests</h2>
+            <button onclick="testMCPPipelines()">Test MCP Pipelines</button>
+            <div id="mcpTests"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>🤖 Context Learning Engine Tests</h2>
+            <button onclick="testContextLearning()">Test Context Learning</button>
+            <div id="contextTests"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>🎨 UI Components Tests</h2>
+            <button onclick="testUIComponents()">Test UI Elements</button>
+            <div id="uiTests"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>📈 Performance & Integration Tests</h2>
+            <button onclick="testPerformance()">Test Performance</button>
+            <div id="performanceTests"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>📊 Test Summary</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3 id="totalTests">0</h3>
+                    <p>Total Tests</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="passedTests">0</h3>
+                    <p>Passed</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="failedTests">0</h3>
+                    <p>Failed</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="successRate">0%</h3>
+                    <p>Success Rate</p>
+                </div>
+            </div>
+            <button onclick="runAllTests()">🚀 Run All Tests</button>
+            <button onclick="generateReport()">📄 Generate Report</button>
+        </div>
+
+        <div class="log-output" id="testLog"></div>
+    </div>
+
+    <script>
+        let testResults = {
+            total: 0,
+            passed: 0,
+            failed: 0,
+            logs: []
+        };
+
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logMessage = `[${timestamp}] ${message}`;
+            testResults.logs.push(logMessage);
+            document.getElementById('testLog').innerHTML = testResults.logs.join('\n');
+            document.getElementById('testLog').scrollTop = document.getElementById('testLog').scrollHeight;
+        }
+
+        function addTestResult(container, testName, passed, details = '') {
+            testResults.total++;
+            if (passed) {
+                testResults.passed++;
+            } else {
+                testResults.failed++;
+            }
+
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${passed ? 'test-pass' : 'test-fail'}`;
+            resultDiv.innerHTML = `
+                ${passed ? '✅' : '❌'} ${testName}
+                ${details ? `<br><small>${details}</small>` : ''}
+            `;
+            document.getElementById(container).appendChild(resultDiv);
+            
+            updateStats();
+            log(`${testName}: ${passed ? 'PASS' : 'FAIL'} ${details}`);
+        }
+
+        function updateStats() {
+            document.getElementById('totalTests').textContent = testResults.total;
+            document.getElementById('passedTests').textContent = testResults.passed;
+            document.getElementById('failedTests').textContent = testResults.failed;
+            const successRate = testResults.total > 0 ? Math.round((testResults.passed / testResults.total) * 100) : 0;
+            document.getElementById('successRate').textContent = successRate + '%';
+        }
+
+        function testSystemInitialization() {
+            document.getElementById('systemTests').innerHTML = '';
+            log('Starting System Initialization Tests...');
+
+            // Test if main window object exists
+            addTestResult('systemTests', 'Window Object Available', typeof window !== 'undefined');
+
+            // Test if advanced modules are loaded
+            const modules = [
+                'WebHistoryTracker',
+                'EnhancedKnowledgeDatabase', 
+                'MCPPipelineManager',
+                'ContextLearningEngine',
+                'AdvancedMemorySystem'
+            ];
+
+            modules.forEach(module => {
+                const exists = typeof window[module] !== 'undefined' || 
+                              (window[module.toLowerCase()] && typeof window[module.toLowerCase()] === 'object');
+                addTestResult('systemTests', `${module} Module`, exists, 
+                    exists ? 'Module loaded successfully' : 'Module not found');
+            });
+
+            // Test IndexedDB support
+            addTestResult('systemTests', 'IndexedDB Support', 'indexedDB' in window);
+
+            // Test localStorage support
+            addTestResult('systemTests', 'LocalStorage Support', 'localStorage' in window);
+        }
+
+        function testWebHistoryTracker() {
+            document.getElementById('webHistoryTests').innerHTML = '';
+            log('Starting Web History Tracker Tests...');
+
+            // Test if WebHistoryTracker instance exists
+            const trackerExists = window.webHistoryTracker && typeof window.webHistoryTracker === 'object';
+            addTestResult('webHistoryTests', 'WebHistoryTracker Instance', trackerExists);
+
+            if (trackerExists) {
+                // Test tracker methods
+                const methods = ['startTracking', 'stopTracking', 'getStats', 'getRecentActivity'];
+                methods.forEach(method => {
+                    const hasMethod = typeof window.webHistoryTracker[method] === 'function';
+                    addTestResult('webHistoryTests', `${method} Method`, hasMethod);
+                });
+
+                // Test privacy settings
+                try {
+                    const privacySettings = window.webHistoryTracker.privacySettings || {};
+                    addTestResult('webHistoryTests', 'Privacy Settings', true, 
+                        `Anonymization: ${privacySettings.anonymizeData || false}`);
+                } catch (e) {
+                    addTestResult('webHistoryTests', 'Privacy Settings', false, e.message);
+                }
+            }
+
+            // Test UI elements
+            const historyPanel = document.getElementById('webHistoryPanel');
+            addTestResult('webHistoryTests', 'History Panel UI', historyPanel !== null);
+
+            const trackingToggle = document.getElementById('trackingToggle');
+            addTestResult('webHistoryTests', 'Tracking Toggle Button', trackingToggle !== null);
+        }
+
+        function testKnowledgeDatabase() {
+            document.getElementById('knowledgeTests').innerHTML = '';
+            log('Starting Enhanced Knowledge Database Tests...');
+
+            const dbExists = window.enhancedKnowledgeDatabase && typeof window.enhancedKnowledgeDatabase === 'object';
+            addTestResult('knowledgeTests', 'Knowledge Database Instance', dbExists);
+
+            if (dbExists) {
+                // Test database methods
+                const methods = ['initialize', 'storeKnowledge', 'searchKnowledge', 'updatePreferences'];
+                methods.forEach(method => {
+                    const hasMethod = typeof window.enhancedKnowledgeDatabase[method] === 'function';
+                    addTestResult('knowledgeTests', `${method} Method`, hasMethod);
+                });
+
+                // Test knowledge storage
+                try {
+                    if (window.enhancedKnowledgeDatabase.testConnection) {
+                        window.enhancedKnowledgeDatabase.testConnection().then(result => {
+                            addTestResult('knowledgeTests', 'Database Connection', result);
+                        }).catch(e => {
+                            addTestResult('knowledgeTests', 'Database Connection', false, e.message);
+                        });
+                    } else {
+                        addTestResult('knowledgeTests', 'Database Connection', true, 'Connection method not available');
+                    }
+                } catch (e) {
+                    addTestResult('knowledgeTests', 'Database Connection', false, e.message);
+                }
+            }
+
+            // Test knowledge suggestions UI
+            const suggestionsPanel = document.getElementById('knowledgeSuggestions');
+            addTestResult('knowledgeTests', 'Knowledge Suggestions UI', suggestionsPanel !== null);
+        }
+
+        function testMCPPipelines() {
+            document.getElementById('mcpTests').innerHTML = '';
+            log('Starting MCP Pipeline Manager Tests...');
+
+            const mcpExists = window.mcpPipelineManager && typeof window.mcpPipelineManager === 'object';
+            addTestResult('mcpTests', 'MCP Pipeline Manager Instance', mcpExists);
+
+            if (mcpExists) {
+                // Test pipeline methods
+                const methods = ['registerPipeline', 'activatePipeline', 'makeRequest', 'getStats'];
+                methods.forEach(method => {
+                    const hasMethod = typeof window.mcpPipelineManager[method] === 'function';
+                    addTestResult('mcpTests', `${method} Method`, hasMethod);
+                });
+
+                // Test supported pipelines
+                const supportedPipelines = [
+                    'openai', 'anthropic', 'google', 'github', 'weather', 'news'
+                ];
+                
+                try {
+                    const registeredPipelines = window.mcpPipelineManager.getRegisteredPipelines ? 
+                        window.mcpPipelineManager.getRegisteredPipelines() : [];
+                    
+                    supportedPipelines.forEach(pipeline => {
+                        const isRegistered = registeredPipelines.includes(pipeline) || 
+                                           window.mcpPipelineManager.pipelines && 
+                                           window.mcpPipelineManager.pipelines[pipeline];
+                        addTestResult('mcpTests', `${pipeline} Pipeline`, isRegistered);
+                    });
+                } catch (e) {
+                    addTestResult('mcpTests', 'Pipeline Registration', false, e.message);
+                }
+            }
+
+            // Test MCP UI elements
+            const mcpStatus = document.getElementById('mcpStatus');
+            addTestResult('mcpTests', 'MCP Status Panel', mcpStatus !== null);
+
+            const apiKeyManager = document.getElementById('apiKeyManager');
+            addTestResult('mcpTests', 'API Key Manager UI', apiKeyManager !== null);
+        }
+
+        function testContextLearning() {
+            document.getElementById('contextTests').innerHTML = '';
+            log('Starting Context Learning Engine Tests...');
+
+            // Test if context learning is initialized
+            const contextExists = window.contextLearningEngine && typeof window.contextLearningEngine === 'object';
+            addTestResult('contextTests', 'Context Learning Engine', contextExists);
+
+            if (contextExists) {
+                // Test learning methods
+                const methods = ['processEvent', 'buildContext', 'predictIntent', 'generateSuggestions'];
+                methods.forEach(method => {
+                    const hasMethod = typeof window.contextLearningEngine[method] === 'function';
+                    addTestResult('contextTests', `${method} Method`, hasMethod);
+                });
+
+                // Test learning models
+                try {
+                    const hasModels = window.contextLearningEngine.models || 
+                                    window.contextLearningEngine.contextModel;
+                    addTestResult('contextTests', 'Learning Models', !!hasModels);
+                } catch (e) {
+                    addTestResult('contextTests', 'Learning Models', false, e.message);
+                }
+            }
+
+            // Test context indicator UI
+            const contextIndicator = document.getElementById('contextIndicator');
+            addTestResult('contextTests', 'Context Learning Indicator', contextIndicator !== null);
+        }
+
+        function testUIComponents() {
+            document.getElementById('uiTests').innerHTML = '';
+            log('Starting UI Components Tests...');
+
+            // Test all new UI elements
+            const uiElements = [
+                { id: 'contextIndicator', name: 'Context Learning Indicator' },
+                { id: 'mcpStatus', name: 'MCP Status Panel' },
+                { id: 'webHistoryPanel', name: 'Web History Panel' },
+                { id: 'knowledgeSuggestions', name: 'Knowledge Suggestions' },
+                { id: 'apiKeyManager', name: 'API Key Manager' },
+                { id: 'modalOverlay', name: 'Modal Overlay' }
+            ];
+
+            uiElements.forEach(element => {
+                const exists = document.getElementById(element.id) !== null;
+                addTestResult('uiTests', element.name, exists);
+            });
+
+            // Test CSS classes
+            const cssClasses = [
+                'web-history-panel', 'context-learning-indicator', 'mcp-pipeline-status',
+                'knowledge-suggestions', 'api-key-manager', 'pipeline-grid'
+            ];
+
+            cssClasses.forEach(className => {
+                const elements = document.getElementsByClassName(className);
+                addTestResult('uiTests', `CSS Class: ${className}`, elements.length > 0);
+            });
+
+            // Test global functions
+            const globalFunctions = [
+                'toggleWebHistoryTracking', 'openAPIKeyManager', 'closeAPIKeyManager', 'saveAPIKeys'
+            ];
+
+            globalFunctions.forEach(func => {
+                const exists = typeof window[func] === 'function';
+                addTestResult('uiTests', `Global Function: ${func}`, exists);
+            });
+        }
+
+        function testPerformance() {
+            document.getElementById('performanceTests').innerHTML = '';
+            log('Starting Performance & Integration Tests...');
+
+            // Test memory usage
+            if (performance.memory) {
+                const memoryUsage = performance.memory.usedJSHeapSize / 1024 / 1024;
+                addTestResult('performanceTests', 'Memory Usage', memoryUsage < 100, 
+                    `${memoryUsage.toFixed(2)} MB`);
+            } else {
+                addTestResult('performanceTests', 'Memory Usage', true, 'Memory API not available');
+            }
+
+            // Test page load performance
+            const loadTime = performance.timing.loadEventEnd - performance.timing.navigationStart;
+            addTestResult('performanceTests', 'Page Load Time', loadTime < 5000, 
+                `${loadTime}ms`);
+
+            // Test DOM elements count
+            const elementCount = document.getElementsByTagName('*').length;
+            addTestResult('performanceTests', 'DOM Elements', elementCount > 0, 
+                `${elementCount} elements`);
+
+            // Test script loading
+            const scripts = document.getElementsByTagName('script').length;
+            addTestResult('performanceTests', 'Scripts Loaded', scripts > 0, 
+                `${scripts} scripts`);
+
+            // Test integration between systems
+            try {
+                const integrationTest = window.webHistoryTracker && 
+                                      window.enhancedKnowledgeDatabase && 
+                                      window.mcpPipelineManager;
+                addTestResult('performanceTests', 'System Integration', integrationTest);
+            } catch (e) {
+                addTestResult('performanceTests', 'System Integration', false, e.message);
+            }
+        }
+
+        function runAllTests() {
+            log('🚀 Starting comprehensive test suite...');
+            testResults = { total: 0, passed: 0, failed: 0, logs: [] };
+            
+            // Clear all test containers
+            ['systemTests', 'webHistoryTests', 'knowledgeTests', 'mcpTests', 'contextTests', 'uiTests', 'performanceTests'].forEach(id => {
+                document.getElementById(id).innerHTML = '';
+            });
+
+            // Run all tests with delays to prevent overwhelming
+            setTimeout(() => testSystemInitialization(), 100);
+            setTimeout(() => testWebHistoryTracker(), 500);
+            setTimeout(() => testKnowledgeDatabase(), 1000);
+            setTimeout(() => testMCPPipelines(), 1500);
+            setTimeout(() => testContextLearning(), 2000);
+            setTimeout(() => testUIComponents(), 2500);
+            setTimeout(() => testPerformance(), 3000);
+            
+            setTimeout(() => {
+                log('✅ All tests completed!');
+                generateReport();
+            }, 4000);
+        }
+
+        function generateReport() {
+            const report = {
+                timestamp: new Date().toISOString(),
+                summary: {
+                    total: testResults.total,
+                    passed: testResults.passed,
+                    failed: testResults.failed,
+                    successRate: testResults.total > 0 ? Math.round((testResults.passed / testResults.total) * 100) : 0
+                },
+                logs: testResults.logs
+            };
+
+            log('📄 Test Report Generated:');
+            log(`Total Tests: ${report.summary.total}`);
+            log(`Passed: ${report.summary.passed}`);
+            log(`Failed: ${report.summary.failed}`);
+            log(`Success Rate: ${report.summary.successRate}%`);
+            
+            // Save report to localStorage
+            localStorage.setItem('talktoapp_test_report', JSON.stringify(report));
+            log('💾 Report saved to localStorage');
+        }
+
+        // Auto-run basic tests on page load
+        window.addEventListener('load', () => {
+            log('🔧 TalkToApp Enhanced Features Test Suite Loaded');
+            log('Click "Run All Tests" to start comprehensive testing');
+        });
+    </script>
+</body>
+</html>

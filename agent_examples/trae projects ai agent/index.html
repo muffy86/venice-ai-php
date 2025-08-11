@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Agent Workforce - Autonomous Assistant</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div id="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <div class="header-left">
+                    <h1>🤖 AI Agent Workforce</h1>
+                    <div class="system-info">
+                        <span class="version">v1.0.6</span>
+                        <div class="health-indicator" id="healthIndicator">
+                            <span class="health-dot"></span>
+                            <span class="health-text">System Healthy</span>
+                        </div>
+
+    <!-- Notification Container -->
+    <div id="notificationContainer" class="notification-container"></div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Loading...</p>
+        </div>
+    </div>
+                    </div>
+                </div>
+                
+                <div class="header-center">
+                    <div class="quick-actions">
+                        <button class="quick-action-btn" onclick="window.app?.components?.notifications?.show('Quick action triggered!', 'info')" title="Quick Test">
+                            ⚡
+                        </button>
+                        <button class="quick-action-btn" onclick="window.app?.components?.dataManager?.createBackup()" title="Create Backup">
+                            💾
+                        </button>
+                        <button class="quick-action-btn" onclick="window.app?.components?.analytics?.exportAnalytics()" title="Export Analytics">
+                            📊
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="header-right">
+                    <div class="theme-selector">
+                        <select id="themeSelector" onchange="window.app?.components?.themeManager?.applyTheme(this.value)">
+                            <option value="dark">Dark Theme</option>
+                            <option value="light">Light Theme</option>
+                            <option value="blue">Ocean Blue</option>
+                            <option value="high-contrast">High Contrast</option>
+                        </select>
+                    </div>
+                    
+                    <div class="status-indicators">
+                        <div class="status-item" id="agentCount">
+                            <span class="status-icon">👥</span>
+                            <span class="status-value">0</span>
+                            <span class="status-label">Agents</span>
+                        </div>
+                        <div class="status-item" id="taskCount">
+                            <span class="status-icon">📋</span>
+                            <span class="status-value">0</span>
+                            <span class="status-label">Tasks</span>
+                        </div>
+                        <div class="status-item" id="systemLoad">
+                            <span class="status-icon">⚡</span>
+                            <span class="status-value">0%</span>
+                            <span class="status-label">Load</span>
+                        </div>
+                    </div>
+                    
+                    <button class="settings-btn" onclick="window.uiManager?.openSettings()">⚙️</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Container -->
+        <div class="main-container">
+            <!-- Sidebar - Agent Management -->
+            <aside class="sidebar">
+                <div class="sidebar-section">
+                    <h3><i class="fas fa-users"></i> Active Agents</h3>
+                    <div id="agent-list" class="agent-list">
+                        <!-- Agents will be populated here -->
+                    </div>
+                    <button id="spawn-agent-btn" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Spawn New Agent
+                    </button>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3><i class="fas fa-tasks"></i> Task Queue</h3>
+                    <div id="task-queue" class="task-queue">
+                        <!-- Tasks will be populated here -->
+                    </div>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3><i class="fas fa-cog"></i> System Controls</h3>
+                    <div class="controls">
+                        <button id="voice-toggle" class="btn btn-secondary">
+                            <i class="fas fa-microphone"></i> Enable Voice
+                        </button>
+                        <button id="autonomous-mode" class="btn btn-warning">
+                            <i class="fas fa-play"></i> Autonomous Mode
+                        </button>
+                        <button id="emergency-stop" class="btn btn-danger">
+                            <i class="fas fa-stop"></i> Emergency Stop
+                        </button>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Content Area -->
+            <main class="main-content">
+                <!-- Chat Interface -->
+                <div class="chat-container">
+                    <div id="chat-messages" class="chat-messages">
+                        <div class="system-message">
+                            <i class="fas fa-info-circle"></i>
+                            AI Agent Workforce System Initialized. Ready to assist with any task.
+                        </div>
+                    </div>
+                    
+                    <div class="chat-input-container">
+                        <div class="input-group">
+                            <input type="text" id="chat-input" placeholder="Describe any task you want the AI agents to handle..." />
+                            <button id="send-btn" class="btn btn-primary">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                            <button id="voice-input-btn" class="btn btn-secondary">
+                                <i class="fas fa-microphone"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Agent Workspace -->
+                <div class="workspace-tabs">
+                    <div class="tab-headers">
+                        <button class="tab-header active" data-tab="overview">Overview</button>
+                        <button class="tab-header" data-tab="code">Code Generation</button>
+                        <button class="tab-header" data-tab="research">Research</button>
+                        <button class="tab-header" data-tab="vision">Computer Vision</button>
+                        <button class="tab-header" data-tab="automation">Automation</button>
+                        <button class="tab-header" data-tab="analytics">📊 Analytics</button>
+                        <button class="tab-header" data-tab="testing">🧪 Testing</button>
+                        <button class="tab-header" data-tab="monitoring">📈 Monitor</button>
+                    </div>
+
+                    <div class="tab-content">
+                        <div id="overview-tab" class="tab-pane active">
+                            <div class="metrics-grid">
+                                <div class="metric-card">
+                                    <h4>Active Agents</h4>
+                                    <div class="metric-value" id="active-agents-count">0</div>
+                                </div>
+                                <div class="metric-card">
+                                    <h4>Tasks Completed</h4>
+                                    <div class="metric-value" id="tasks-completed">0</div>
+                                </div>
+                                <div class="metric-card">
+                                    <h4>Success Rate</h4>
+                                    <div class="metric-value" id="success-rate">100%</div>
+                                </div>
+                                <div class="metric-card">
+                                    <h4>System Load</h4>
+                                    <div class="metric-value" id="system-load">Low</div>
+                                </div>
+                            </div>
+                            
+                            <div class="activity-feed">
+                                <h3>Recent Activity</h3>
+                                <div id="activity-log" class="activity-log">
+                                    <!-- Activity items will be populated here -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="code-tab" class="tab-pane">
+                            <div class="code-workspace">
+                                <div class="code-editor">
+                                    <textarea id="code-output" placeholder="Generated code will appear here..."></textarea>
+                                </div>
+                                <div class="code-controls">
+                                    <button class="btn btn-primary" id="execute-code">Execute</button>
+                                    <button class="btn btn-secondary" id="save-code">Save</button>
+                                    <button class="btn btn-warning" id="optimize-code">Optimize</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="research-tab" class="tab-pane">
+                            <div class="research-workspace">
+                                <div class="search-results" id="research-results">
+                                    <!-- Research results will be populated here -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="vision-tab" class="tab-pane">
+                            <div class="vision-workspace">
+                                <div class="vision-input">
+                                    <input type="file" id="image-upload" accept="image/*" />
+                                    <button class="btn btn-primary" id="analyze-image">Analyze Image</button>
+                                </div>
+                                <div class="vision-output" id="vision-results">
+                                    <!-- Vision analysis results will be populated here -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="automation-tab" class="tab-pane">
+                            <div class="automation-workspace">
+                                <div class="automation-controls">
+                                    <button class="btn btn-primary" id="record-actions">Record Actions</button>
+                                    <button class="btn btn-secondary" id="replay-actions">Replay</button>
+                                    <button class="btn btn-warning" id="schedule-task">Schedule</button>
+                                </div>
+                                <div class="automation-scripts" id="automation-scripts">
+                                    <!-- Automation scripts will be listed here -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="analytics-tab" class="tab-pane">
+                            <div class="analytics-dashboard">
+                                <h3>📊 System Analytics</h3>
+                                <div class="analytics-grid">
+                                    <div class="analytics-card">
+                                        <h4>Usage Statistics</h4>
+                                        <div id="usageStats">
+                                            <div class="stat-item">
+                                                <span class="stat-label">Total Sessions:</span>
+                                                <span class="stat-value" id="totalSessions">0</span>
+                                            </div>
+                                            <div class="stat-item">
+                                                <span class="stat-label">Tasks Completed:</span>
+                                                <span class="stat-value" id="tasksCompleted">0</span>
+                                            </div>
+                                            <div class="stat-item">
+                                                <span class="stat-label">Success Rate:</span>
+                                                <span class="stat-value" id="successRate">0%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="analytics-card">
+                                        <h4>Performance Metrics</h4>
+                                        <div id="performanceMetrics">
+                                            <div class="metric-item">
+                                                <span class="metric-label">Avg Response Time:</span>
+                                                <span class="metric-value" id="avgResponseTime">0ms</span>
+                                            </div>
+                                            <div class="metric-item">
+                                                <span class="metric-label">Memory Usage:</span>
+                                                <span class="metric-value" id="memoryUsage">0MB</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="analytics-card">
+                                        <h4>Agent Activity</h4>
+                                        <div id="agentActivity">
+                                            <canvas id="activityChart" width="300" height="200"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="analytics-actions">
+                                    <button class="btn btn-primary" onclick="window.app?.components?.analytics?.exportAnalytics()">
+                                        📥 Export Data
+                                    </button>
+                                    <button class="btn btn-secondary" onclick="window.app?.components?.analytics?.clearAnalytics()">
+                                        🗑️ Clear Data
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="testing-tab" class="tab-pane">
+                            <div class="testing-dashboard">
+                                <h3>🧪 System Testing</h3>
+                                <div class="testing-controls">
+                                    <div class="test-suite-selector">
+                                        <label for="testSuite">Test Suite:</label>
+                                        <select id="testSuite">
+                                            <option value="all">All Tests</option>
+                                            <option value="unit">Unit Tests</option>
+                                            <option value="integration">Integration Tests</option>
+                                            <option value="performance">Performance Tests</option>
+                                            <option value="security">Security Tests</option>
+                                        </select>
+                                    </div>
+                                    <div class="test-actions">
+                                        <button class="btn btn-primary" onclick="window.app?.components?.testing?.runTests()">
+                                            ▶️ Run Tests
+                                        </button>
+                                        <button class="btn btn-secondary" onclick="window.app?.components?.testing?.generateReport()">
+                                            📋 Generate Report
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="test-results" id="testResults">
+                                    <div class="test-summary">
+                                        <div class="summary-item">
+                                            <span class="summary-label">Total Tests:</span>
+                                            <span class="summary-value" id="totalTests">0</span>
+                                        </div>
+                                        <div class="summary-item">
+                                            <span class="summary-label">Passed:</span>
+                                            <span class="summary-value passed" id="passedTests">0</span>
+                                        </div>
+                                        <div class="summary-item">
+                                            <span class="summary-label">Failed:</span>
+                                            <span class="summary-value failed" id="failedTests">0</span>
+                                        </div>
+                                        <div class="summary-item">
+                                            <span class="summary-label">Coverage:</span>
+                                            <span class="summary-value" id="testCoverage">0%</span>
+                                        </div>
+                                    </div>
+                                    <div class="test-details" id="testDetails">
+                                        <p>No tests run yet</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="monitoring-tab" class="tab-pane">
+                            <div class="monitoring-dashboard">
+                                <h3>📈 System Monitoring</h3>
+                                <div class="monitoring-grid">
+                                    <div class="monitor-card">
+                                        <h4>System Health</h4>
+                                        <div class="health-metrics" id="healthMetrics">
+                                            <div class="health-item">
+                                                <span class="health-label">CPU Usage:</span>
+                                                <div class="progress-bar">
+                                                    <div class="progress-fill" id="cpuProgress" style="width: 0%"></div>
+                                                </div>
+                                                <span class="health-value" id="cpuUsage">0%</span>
+                                            </div>
+                                            <div class="health-item">
+                                                <span class="health-label">Memory:</span>
+                                                <div class="progress-bar">
+                                                    <div class="progress-fill" id="memoryProgress" style="width: 0%"></div>
+                                                </div>
+                                                <span class="health-value" id="memoryUsageMonitor">0%</span>
+                                            </div>
+                                            <div class="health-item">
+                                                <span class="health-label">Network:</span>
+                                                <div class="progress-bar">
+                                                    <div class="progress-fill" id="networkProgress" style="width: 0%"></div>
+                                                </div>
+                                                <span class="health-value" id="networkLatency">0ms</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="monitor-card">
+                                        <h4>Error Logs</h4>
+                                        <div class="error-log" id="errorLog">
+                                            <div class="log-controls">
+                                                <select id="logLevel">
+                                                    <option value="all">All Levels</option>
+                                                    <option value="error">Errors</option>
+                                                    <option value="warning">Warnings</option>
+                                                    <option value="info">Info</option>
+                                                </select>
+                                                <button class="btn btn-small" onclick="window.app?.components?.errorHandler?.clearLogs()">
+                                                    Clear
+                                                </button>
+                                            </div>
+                                            <div class="log-entries" id="logEntries">
+                                                <p>No errors logged</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="monitor-card">
+                                        <h4>Real-time Metrics</h4>
+                                        <div class="realtime-metrics" id="realtimeMetrics">
+                                            <canvas id="metricsChart" width="300" height="200"></canvas>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Settings Modal -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-cog"></i> System Settings</h2>
+                <span class="close" id="close-settings">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="settings-tabs">
+                    <button class="tab-btn active" data-tab="api">API Configuration</button>
+                    <button class="tab-btn" data-tab="voice">Voice Settings</button>
+                    <button class="tab-btn" data-tab="system">System Settings</button>
+                    <button class="tab-btn" data-tab="ui">UI Preferences</button>
+                    <button class="tab-btn" data-tab="security">🔒 Security</button>
+                    <button class="tab-btn" data-tab="performance">⚡ Performance</button>
+                    <button class="tab-btn" data-tab="advanced">⚙️ Advanced</button>
+                </div>
+
+                <!-- API Configuration Tab -->
+                <div id="api-tab" class="tab-content active">
+                    <div class="form-group">
+                        <label for="openrouter-key">
+                            <i class="fas fa-key"></i> OpenRouter API Key
+                            <span class="help-text">Required for AI model access</span>
+                        </label>
+                        <div class="input-group">
+                            <input type="password" id="openrouter-key" placeholder="sk-or-v1-...">
+                            <button type="button" class="btn btn-icon toggle-password" data-target="openrouter-key">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <small class="form-help">Get your API key from <a href="https://openrouter.ai/keys" target="_blank">OpenRouter</a></small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="elevenlabs-key">
+                            <i class="fas fa-volume-up"></i> ElevenLabs API Key
+                            <span class="help-text">Optional for premium voice synthesis</span>
+                        </label>
+                        <div class="input-group">
+                            <input type="password" id="elevenlabs-key" placeholder="sk_...">
+                            <button type="button" class="btn btn-icon toggle-password" data-target="elevenlabs-key">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <small class="form-help">Get your API key from <a href="https://elevenlabs.io/app/settings/api-keys" target="_blank">ElevenLabs</a></small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="default-model">Default AI Model</label>
+                        <select id="default-model">
+                            <option value="mixtral-8x7b">Mixtral 8x7B (Free)</option>
+                            <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                            <option value="claude-3-opus">Claude 3 Opus</option>
+                            <option value="gemini-pro">Gemini Pro</option>
+                            <option value="llama-2-70b">Llama 2 70B</option>
+                        </select>
+                    </div>
+
+                    <div class="api-status-display">
+                        <div class="status-card" id="openrouter-status">
+                            <i class="fas fa-circle status-indicator"></i>
+                            <span>OpenRouter: Not Connected</span>
+                        </div>
+                        <div class="status-card" id="elevenlabs-status">
+                            <i class="fas fa-circle status-indicator"></i>
+                            <span>ElevenLabs: Not Connected</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Voice Settings Tab -->
+                <div id="voice-tab" class="tab-content">
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="enable-voice">
+                            <span class="checkmark"></span>
+                            Enable Voice Features
+                        </label>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="enable-tts">
+                            <span class="checkmark"></span>
+                            Enable Text-to-Speech
+                        </label>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="use-elevenlabs">
+                            <span class="checkmark"></span>
+                            Use ElevenLabs for TTS (Premium)
+                        </label>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="voice-selection">Voice Selection</label>
+                        <select id="voice-selection">
+                            <option value="default">Default (Rachel)</option>
+                            <option value="male">Male (Josh)</option>
+                            <option value="female">Female (Bella)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="speech-rate">Speech Rate: <span id="rate-value">1.0</span></label>
+                        <input type="range" id="speech-rate" min="0.5" max="2.0" step="0.1" value="1.0">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="speech-pitch">Speech Pitch: <span id="pitch-value">1.0</span></label>
+                        <input type="range" id="speech-pitch" min="0.5" max="2.0" step="0.1" value="1.0">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="speech-volume">Speech Volume: <span id="volume-value">0.8</span></label>
+                        <input type="range" id="speech-volume" min="0.0" max="1.0" step="0.1" value="0.8">
+                    </div>
+
+                    <div class="voice-test">
+                        <button id="test-voice" class="btn btn-secondary">
+                            <i class="fas fa-play"></i> Test Voice
+                        </button>
+                    </div>
+                </div>
+
+                <!-- System Settings Tab -->
+                <div id="system-tab" class="tab-content">
+                    <div class="form-group">
+                        <label for="max-agents">Maximum Concurrent Agents</label>
+                        <input type="number" id="max-agents" min="1" max="20" value="10">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="auto-spawn">
+                            <span class="checkmark"></span>
+                            Auto-spawn Agents
+                        </label>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="debug-mode">
+                            <span class="checkmark"></span>
+                            Debug Mode
+                        </label>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="health-check-interval">Health Check Interval (seconds)</label>
+                        <input type="number" id="health-check-interval" min="10" max="300" value="30">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="memory-threshold">Memory Usage Threshold (%)</label>
+                        <input type="number" id="memory-threshold" min="50" max="95" value="80">
+                    </div>
+                </div>
+
+                <!-- UI Preferences Tab -->
+                <div id="ui-tab" class="tab-content">
+                    <div class="form-group">
+                        <label for="theme-select">Theme</label>
+                        <select id="theme-select">
+                            <option value="dark">Dark</option>
+                            <option value="light">Light</option>
+                            <option value="auto">Auto</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="enable-animations" checked>
+                            <span class="checkmark"></span>
+                            Enable Animations
+                        </label>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="enable-notifications" checked>
+                            <span class="checkmark"></span>
+                            Enable Notifications
+                        </label>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="auto-scroll" checked>
+                            <span class="checkmark"></span>
+                            Auto-scroll Chat
+                        </label>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="refresh-interval">Refresh Interval (seconds)</label>
+                        <input type="number" id="refresh-interval" min="1" max="60" value="5">
+                    </div>
+                </div>
+
+                <!-- Security Settings Tab -->
+                <div id="security-tab" class="tab-content">
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="encryptStorage" checked>
+                            <span class="checkmark"></span>
+                            Encrypt Local Storage
+                        </label>
+                        <small class="form-help">Encrypts sensitive data stored locally</small>
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="sessionTimeout" checked>
+                            <span class="checkmark"></span>
+                            Auto Session Timeout
+                        </label>
+                        <small class="form-help">Automatically log out after inactivity</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="sessionTimeoutMinutes">Timeout Duration (minutes)</label>
+                        <input type="number" id="sessionTimeoutMinutes" min="5" max="480" value="30">
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="rateLimiting" checked>
+                            <span class="checkmark"></span>
+                            Enable Rate Limiting
+                        </label>
+                        <small class="form-help">Limits API requests to prevent abuse</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="maxRequestsPerMinute">Max Requests per Minute</label>
+                        <input type="number" id="maxRequestsPerMinute" min="10" max="1000" value="60">
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="inputValidation" checked>
+                            <span class="checkmark"></span>
+                            Strict Input Validation
+                        </label>
+                        <small class="form-help">Enhanced validation for all user inputs</small>
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-secondary" onclick="window.app?.components?.security?.generateSecurityReport()">
+                            📋 Generate Security Report
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Performance Settings Tab -->
+                <div id="performance-tab" class="tab-content">
+                    <div class="form-group">
+                        <label for="cacheSize">Cache Size (MB): <span id="cacheSizeValue">100</span></label>
+                        <input type="range" id="cacheSize" min="10" max="500" value="100">
+                    </div>
+                    <div class="form-group">
+                        <label for="cacheTTL">Cache TTL (minutes)</label>
+                        <input type="number" id="cacheTTL" min="1" max="1440" value="60">
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="enableCompression" checked>
+                            <span class="checkmark"></span>
+                            Enable Data Compression
+                        </label>
+                        <small class="form-help">Compresses data for faster transfers</small>
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="lazyLoading" checked>
+                            <span class="checkmark"></span>
+                            Enable Lazy Loading
+                        </label>
+                        <small class="form-help">Load components only when needed</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="maxConcurrentTasks">Max Concurrent Tasks</label>
+                        <input type="number" id="maxConcurrentTasks" min="1" max="20" value="5">
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="performanceMonitoring" checked>
+                            <span class="checkmark"></span>
+                            Performance Monitoring
+                        </label>
+                        <small class="form-help">Track and log performance metrics</small>
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-secondary" onclick="window.app?.components?.performance?.optimizeSystem()">
+                            🚀 Optimize System
+                        </button>
+                        <button class="btn btn-secondary" onclick="window.app?.components?.dataManager?.clearCache()">
+                            🗑️ Clear Cache
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Advanced Settings Tab -->
+                <div id="advanced-tab" class="tab-content">
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="debugMode">
+                            <span class="checkmark"></span>
+                            Debug Mode
+                        </label>
+                        <small class="form-help">Enable detailed logging and debugging features</small>
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="experimentalFeatures">
+                            <span class="checkmark"></span>
+                            Experimental Features
+                        </label>
+                        <small class="form-help">Enable beta features (may be unstable)</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="logLevel">Log Level</label>
+                        <select id="logLevel">
+                            <option value="error">Error</option>
+                            <option value="warn">Warning</option>
+                            <option value="info" selected>Info</option>
+                            <option value="debug">Debug</option>
+                            <option value="trace">Trace</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="backupInterval">Auto Backup Interval (hours)</label>
+                        <input type="number" id="backupInterval" min="1" max="168" value="24">
+                    </div>
+                    <div class="form-group">
+                        <label for="maxBackups">Max Backup Files</label>
+                        <input type="number" id="maxBackups" min="1" max="50" value="10">
+                    </div>
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="telemetry">
+                            <span class="checkmark"></span>
+                            Anonymous Telemetry
+                        </label>
+                        <small class="form-help">Help improve the system by sharing anonymous usage data</small>
+                    </div>
+                    <div class="form-group">
+                        <h4>Plugin Management</h4>
+                        <div class="plugin-list" id="pluginList">
+                            <p>Loading plugins...</p>
+                        </div>
+                        <button class="btn btn-secondary" onclick="window.app?.components?.plugins?.refreshPlugins()">
+                            🔄 Refresh Plugins
+                        </button>
+                    </div>
+                    <div class="form-group">
+                        <h4>System Actions</h4>
+                        <button class="btn btn-warning" onclick="window.app?.components?.dataManager?.resetSystem()">
+                            🔄 Reset System
+                        </button>
+                        <button class="btn btn-primary" onclick="window.app?.components?.dataManager?.exportSettings()">
+                            📤 Export Settings
+                        </button>
+                        <button class="btn btn-primary" onclick="document.getElementById('importSettings').click()">
+                            📥 Import Settings
+                        </button>
+                        <input type="file" id="importSettings" accept=".json" style="display: none;" 
+                               onchange="window.app?.components?.dataManager?.importSettings(this.files[0])">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="test-connection" class="btn btn-secondary">
+                    <i class="fas fa-plug"></i> Test Connection
+                </button>
+                <button id="save-settings" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Save Settings
+                </button>
+                <button id="reset-settings" class="btn btn-danger">
+                    <i class="fas fa-undo"></i> Reset to Defaults
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Agent Spawn Modal -->
+        <div id="agent-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Spawn New Agent</h3>
+                    <span class="close">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <form id="agent-form">
+                        <div class="form-group">
+                            <label for="agent-type">Agent Type:</label>
+                            <select id="agent-type" required>
+                                <option value="">Select Agent Type</option>
+                                <option value="coding">Coding Expert</option>
+                                <option value="research">Research Specialist</option>
+                                <option value="automation">Automation Engineer</option>
+                                <option value="vision">Computer Vision Expert</option>
+                                <option value="data">Data Scientist</option>
+                                <option value="security">Security Analyst</option>
+                                <option value="design">UI/UX Designer</option>
+                                <option value="devops">DevOps Engineer</option>
+                                <option value="qa">Quality Assurance</option>
+                                <option value="general">General Assistant</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="agent-name">Agent Name:</label>
+                            <input type="text" id="agent-name" required />
+                        </div>
+                        <div class="form-group">
+                            <label for="agent-model">AI Model:</label>
+                            <select id="agent-model" required>
+                                <option value="">Select Model</option>
+                                <option value="gpt-4-turbo">GPT-4 Turbo</option>
+                                <option value="claude-3-opus">Claude 3 Opus</option>
+                                <option value="gemini-pro">Gemini Pro</option>
+                                <option value="llama-2-70b">Llama 2 70B</option>
+                                <option value="mixtral-8x7b">Mixtral 8x7B</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="agent-capabilities">Capabilities:</label>
+                            <div class="checkbox-group">
+                                <label><input type="checkbox" value="web-browsing"> Web Browsing</label>
+                                <label><input type="checkbox" value="code-execution"> Code Execution</label>
+                                <label><input type="checkbox" value="file-operations"> File Operations</label>
+                                <label><input type="checkbox" value="api-calls"> API Calls</label>
+                                <label><input type="checkbox" value="image-generation"> Image Generation</label>
+                                <label><input type="checkbox" value="voice-synthesis"> Voice Synthesis</label>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="agent-autonomy">Autonomy Level:</label>
+                            <select id="agent-autonomy" required>
+                                <option value="supervised">Supervised</option>
+                                <option value="semi-autonomous">Semi-Autonomous</option>
+                                <option value="fully-autonomous">Fully Autonomous</option>
+                            </select>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">Spawn Agent</button>
+                            <button type="button" class="btn btn-secondary" id="cancel-spawn">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- External Dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.10.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4.1.1/dist/tesseract.min.js"></script>
+    
+    <!-- JavaScript Files -->
+    <script src="js/config.js?v=1.0.22"></script>
+    <script src="js/error-handler.js?v=1.0.22"></script>
+    <script src="js/security.js?v=1.0.22"></script>
+    <script src="js/analytics.js?v=1.0.22"></script>
+    <script src="js/data-manager.js?v=1.0.22"></script>
+    <script src="js/plugin-manager.js?v=1.0.22"></script>
+    <script src="js/plugins.js?v=1.0.22"></script>
+    <script src="js/specialized.js?v=1.0.22"></script>
+    <script src="js/agents.js?v=1.0.22"></script>
+    <script src="js/testing.js?v=1.0.22"></script>
+    <script src="js/ui.js?v=1.0.22"></script>
+    <script src="js/app.js?v=1.0.22"></script>
+</body>
+</html>

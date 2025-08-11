@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MCP Applications Suite</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .applications-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .app-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+
+        .app-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+
+        .app-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .app-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #2c3e50;
+            text-align: center;
+        }
+
+        .app-description {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .app-features {
+            list-style: none;
+            margin-bottom: 1.5rem;
+        }
+
+        .app-features li {
+            padding: 0.3rem 0;
+            color: #555;
+            position: relative;
+            padding-left: 1.2rem;
+        }
+
+        .app-features li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .launch-btn {
+            width: 100%;
+            padding: 0.8rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.3s ease;
+        }
+
+        .launch-btn:hover {
+            opacity: 0.9;
+        }
+
+        .mcp-info {
+            background: rgba(255,255,255,0.9);
+            border-radius: 12px;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .mcp-servers {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .server-badge {
+            background: #f8f9fa;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            text-align: center;
+            font-size: 0.9rem;
+            border: 2px solid #e9ecef;
+        }
+
+        .server-badge.active {
+            background: #d4edda;
+            border-color: #27ae60;
+            color: #155724;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 MCP Applications Suite</h1>
+            <p>Powerful applications leveraging Model Context Protocol servers</p>
+        </div>
+
+        <div class="applications-grid">
+            <div class="app-card" onclick="window.open('./test-suite/index.html', '_blank')">
+                <div class="app-icon">🧪</div>
+                <div class="app-title">MCP Server Test Suite</div>
+                <div class="app-description">
+                    Comprehensive testing utility that validates all MCP servers and provides detailed status reports.
+                </div>
+                <ul class="app-features">
+                    <li>Server health monitoring</li>
+                    <li>Connection testing</li>
+                    <li>Performance metrics</li>
+                    <li>Detailed reporting</li>
+                </ul>
+                <button class="launch-btn">Launch Test Suite</button>
+            </div>
+
+            <div class="app-card" onclick="window.open('./task-manager/index.html', '_blank')">
+                <div class="app-icon">📋</div>
+                <div class="app-title">Task Management App</div>
+                <div class="app-description">
+                    Smart task manager using memory, SQLite, time, and filesystem servers for complete task lifecycle management.
+                </div>
+                <ul class="app-features">
+                    <li>Persistent task storage</li>
+                    <li>Due date management</li>
+                    <li>User preferences</li>
+                    <li>Export/Import capabilities</li>
+                </ul>
+                <button class="launch-btn">Launch Task Manager</button>
+            </div>
+
+            <div class="app-card" onclick="window.open('./knowledge-assistant/index.html', '_blank')">
+                <div class="app-icon">🧠</div>
+                <div class="app-title">Knowledge Assistant</div>
+                <div class="app-description">
+                    Intelligent assistant that builds knowledge graphs, researches topics, and manages your information.
+                </div>
+                <ul class="app-features">
+                    <li>Knowledge graph building</li>
+                    <li>Web research automation</li>
+                    <li>Document organization</li>
+                    <li>Content archiving</li>
+                </ul>
+                <button class="launch-btn">Launch Assistant</button>
+            </div>
+
+            <div class="app-card" onclick="window.open('./monitoring-dashboard/index.html', '_blank')">
+                <div class="app-icon">📊</div>
+                <div class="app-title">MCP Monitoring Dashboard</div>
+                <div class="app-description">
+                    Real-time dashboard showing server health, usage statistics, and performance metrics.
+                </div>
+                <ul class="app-features">
+                    <li>Real-time monitoring</li>
+                    <li>Usage analytics</li>
+                    <li>Performance tracking</li>
+                    <li>Error alerts</li>
+                </ul>
+                <button class="launch-btn">Launch Dashboard</button>
+            </div>
+
+            <div class="app-card" onclick="window.open('./git-analyzer/index.html', '_blank')">
+                <div class="app-icon">📈</div>
+                <div class="app-title">Git Repository Analyzer</div>
+                <div class="app-description">
+                    Analyze code quality trends, track project evolution, and generate comprehensive development reports.
+                </div>
+                <ul class="app-features">
+                    <li>Code quality analysis</li>
+                    <li>Evolution tracking</li>
+                    <li>Development reports</li>
+                    <li>Pattern identification</li>
+                </ul>
+                <button class="launch-btn">Launch Analyzer</button>
+            </div>
+
+            <div class="app-card" onclick="window.open('./content-archiver/index.html', '_blank')">
+                <div class="app-icon">🗄️</div>
+                <div class="app-title">Web Content Archiver</div>
+                <div class="app-description">
+                    Automatically capture web pages, store content with metadata, and create searchable archives.
+                </div>
+                <ul class="app-features">
+                    <li>Automated capture</li>
+                    <li>Metadata storage</li>
+                    <li>Searchable archives</li>
+                    <li>Report generation</li>
+                </ul>
+                <button class="launch-btn">Launch Archiver</button>
+            </div>
+
+            <div class="app-card" onclick="window.open('./talktoapp/index.html', '_blank')" style="border: 3px solid gold; position: relative; overflow: visible;">
+                <div style="position: absolute; top: -10px; right: -10px; background: linear-gradient(45deg, #ff6b6b, #ffd93d); color: white; padding: 5px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; box-shadow: 0 4px 15px rgba(255,107,107,0.4);">🚀 NEW!</div>
+                <div class="app-icon">🗣️</div>
+                <div class="app-title">TalkToApp - AI Builder</div>
+                <div class="app-description">
+                    Revolutionary AI-powered app builder where anyone can create applications by simply describing what they want in plain English.
+                </div>
+                <ul class="app-features">
+                    <li>Natural language creation</li>
+                    <li>Voice commands</li>
+                    <li>Child-friendly interface</li>
+                    <li>Instant app generation</li>
+                    <li>Zero coding required</li>
+                </ul>
+                <button class="launch-btn" style="background: linear-gradient(45deg, #ff6b6b, #ffd93d); animation: pulse 2s infinite;">🚀 Launch AI Builder</button>
+            </div>
+        </div>
+
+        <div class="mcp-info">
+            <h3>🔧 MCP Servers Status</h3>
+            <p>The following Model Context Protocol servers are available for these applications:</p>
+            <div class="mcp-servers">
+                <div class="server-badge active">🗂️ filesystem</div>
+                <div class="server-badge active">🧠 memory</div>
+                <div class="server-badge active">⏰ time</div>
+                <div class="server-badge active">🗄️ sqlite</div>
+                <div class="server-badge active">🤖 puppeteer</div>
+                <div class="server-badge active">📁 git</div>
+                <div class="server-badge active">🌐 fetch</div>
+                <div class="server-badge active">🤔 sequential-thinking</div>
+                <div class="server-badge active">🔍 brave-search</div>
+                <div class="server-badge">🐙 github</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
