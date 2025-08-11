@@ -315,7 +315,7 @@ composer fix
 
 ## 🤝 Contributing
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+We welcome contributions! Please follow these steps:
 
 1. Fork the repository
 2. Create a feature branch
@@ -329,14 +329,14 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🆘 Support
 
-- 📖 [Documentation](https://docs.venice.ai)
-- 🐛 [Issue Tracker](https://github.com/venice-ai/venice-ai-php/issues)
-- 💬 [Community Forum](https://community.venice.ai)
+- 📖 [Documentation](https://venice.ai/docs)
+- 🐛 [Issue Tracker](https://github.com/muffy86/venice-ai-php/issues)
+- 💬 [Community Forum](https://venice.ai/community)
 - 📧 [Email Support](mailto:support@venice.ai)
 
 ## 📈 Changelog
 
-See [CHANGELOG.md](CHANGELOG.md) for version history and updates.
+For version history and updates, please check the git commit history and releases section.
 
 ## 🌟 Examples
 

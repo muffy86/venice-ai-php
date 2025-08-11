@@ -1,0 +1,336 @@
+{
+  "// Amazon Q Developer Optimization Settings": "Enhanced VS Code configuration for optimal AI completions and suggestions",
+
+  "// Amazon Q Integration": "Enable and configure Amazon Q for maximum effectiveness",
+  "amazonQ.developer.enableCodeSuggestions": true,
+  "amazonQ.developer.enableInlineCompletion": true,
+  "amazonQ.developer.enableCodeTransform": true,
+  "amazonQ.developer.enableSecurityScanning": true,
+  "amazonQ.developer.enableChatAssistant": true,
+  "amazonQ.developer.showInlineCompletionTypes": true,
+  "amazonQ.developer.experimentalFeatures": true,
+
+  "// AI-Powered Intellisense": "Enhanced IntelliSense for better AI understanding",
+  "python.analysis.typeCheckingMode": "strict",
+  "python.analysis.autoImportCompletions": true,
+  "python.analysis.completeFunctionParens": true,
+  "python.analysis.addImport.exactMatchOnly": false,
+  "python.analysis.indexing": true,
+  "python.analysis.packageIndexDepths": [
+    {
+      "name": "",
+      "depth": 5,
+      "includeAllSymbols": true
+    }
+  ],
+
+  "// Advanced Type Checking": "Comprehensive type analysis for Amazon Q",
+  "python.analysis.diagnosticMode": "workspace",
+  "python.analysis.stubPath": "./typings",
+  "python.analysis.typeshedPaths": [],
+  "python.analysis.extraPaths": [],
+  "python.analysis.include": ["**/*.py"],
+  "python.analysis.exclude": ["**/node_modules", "**/__pycache__", ".git"],
+
+  "// Enhanced Documentation": "Rich docstrings and comments for AI context",
+  "python.analysis.autoDocstringFormat": "google",
+  "autoDocstring.docstringFormat": "google-notypes",
+  "autoDocstring.generateDocstringOnEnter": true,
+  "autoDocstring.includeExtendedSummary": true,
+  "autoDocstring.includeName": true,
+  "autoDocstring.startOnNewLine": true,
+  "autoDocstring.customTemplatePath": "",
+
+  "// Code Quality and AI Training": "High-quality code patterns for AI learning",
+  "python.linting.enabled": true,
+  "python.linting.pylintEnabled": true,
+  "python.linting.flake8Enabled": true,
+  "python.linting.mypyEnabled": true,
+  "python.linting.banditEnabled": true,
+  "python.linting.prospectorEnabled": false,
+  "python.linting.pydocstyleEnabled": true,
+  "python.linting.pycodestyleEnabled": true,
+  "python.linting.pylamaEnabled": false,
+
+  "// Advanced Formatting": "Consistent code style for AI pattern recognition",
+  "python.formatting.provider": "black",
+  "python.formatting.blackArgs": ["--line-length=88", "--target-version=py39"],
+  "python.sortImports.args": [
+    "--multi-line=3",
+    "--trailing-comma",
+    "--force-grid-wrap=0",
+    "--combine-as",
+    "--line-width=88"
+  ],
+
+  "// Intelligent Code Actions": "Enhanced refactoring and suggestions",
+  "python.analysis.autoSearchPaths": true,
+  "python.analysis.diagnosticSeverityOverrides": {
+    "reportMissingTypeStubs": "information",
+    "reportGeneralTypeIssues": "error",
+    "reportOptionalMemberAccess": "warning",
+    "reportOptionalCall": "warning",
+    "reportOptionalIterable": "warning"
+  },
+
+  "// Enhanced Testing Integration": "AI-aware testing patterns",
+  "python.testing.unittestEnabled": true,
+  "python.testing.pytestEnabled": true,
+  "python.testing.autoTestDiscoverOnSaveEnabled": true,
+  "python.testing.promptToConfigure": true,
+  "python.testing.debugPort": 3000,
+
+  "// Advanced Editor Features": "Optimize editor for AI completions",
+  "editor.suggestSelection": "first",
+  "editor.acceptSuggestionOnCommitCharacter": true,
+  "editor.acceptSuggestionOnEnter": "on",
+  "editor.quickSuggestions": {
+    "other": "on",
+    "comments": "on",
+    "strings": "on"
+  },
+  "editor.quickSuggestionsDelay": 10,
+  "editor.parameterHints.enabled": true,
+  "editor.parameterHints.cycle": true,
+  "editor.suggest.snippetsPreventQuickSuggestions": false,
+  "editor.suggest.showKeywords": true,
+  "editor.suggest.showSnippets": true,
+  "editor.suggest.showClasses": true,
+  "editor.suggest.showFunctions": true,
+  "editor.suggest.showConstructors": true,
+  "editor.suggest.showMethods": true,
+  "editor.suggest.showFields": true,
+  "editor.suggest.showVariables": true,
+  "editor.suggest.showInterfaces": true,
+  "editor.suggest.showModules": true,
+  "editor.suggest.showProperties": true,
+  "editor.suggest.showReferences": true,
+  "editor.suggest.showTypeParameters": true,
+  "editor.suggest.showWords": true,
+  "editor.suggest.localityBonus": true,
+  "editor.suggest.shareSuggestSelections": true,
+  "editor.suggestFontSize": 0,
+  "editor.suggestLineHeight": 0,
+
+  "// AI Context Enhancement": "Provide rich context for AI systems",
+  "editor.hover.enabled": true,
+  "editor.hover.delay": 300,
+  "editor.hover.sticky": true,
+  "editor.inlayHints.enabled": "on",
+  "editor.lightbulb.enabled": true,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": true,
+    "source.fixAll": true,
+    "source.fixAll.pylint": true
+  },
+
+  "// Enhanced Symbol Navigation": "Better code understanding for AI",
+  "editor.gotoLocation.alternativeDefinitionCommand": "editor.action.goToReferences",
+  "editor.gotoLocation.alternativeTypeDefinitionCommand": "editor.action.goToReferences",
+  "editor.gotoLocation.alternativeImplementationCommand": "editor.action.goToReferences",
+  "editor.gotoLocation.alternativeReferenceCommand": "editor.action.goToReferences",
+
+  "// Intelligent File Management": "AI-aware file handling",
+  "files.autoSave": "afterDelay",
+  "files.autoSaveDelay": 1000,
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/CVS": true,
+    "**/.DS_Store": true,
+    "**/Thumbs.db": true,
+    "**/__pycache__": true,
+    "**/*.pyc": true,
+    "**/.pytest_cache": true,
+    "**/.coverage": true,
+    "**/htmlcov": true,
+    "**/.tox": true,
+    "**/.venv": true,
+    "**/venv": true,
+    "**/.env": true,
+    "**/*.egg-info": true,
+    "**/dist": true,
+    "**/build": true
+  },
+
+  "// Advanced Search and Replace": "Enhanced code discovery",
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/bower_components": true,
+    "**/*.code-search": true,
+    "**/__pycache__": true,
+    "**/.pytest_cache": true,
+    "**/venv": true,
+    "**/.venv": true,
+    "**/env": true,
+    "**/.env": true,
+    "**/dist": true,
+    "**/build": true
+  },
+  "search.smartCase": true,
+  "search.useGlobalIgnoreFiles": true,
+  "search.useIgnoreFiles": true,
+
+  "// Enhanced Git Integration": "Version control awareness for AI",
+  "git.enableSmartCommit": true,
+  "git.autofetch": true,
+  "git.autofetchPeriod": 180,
+  "git.confirmSync": false,
+  "git.enableCommitSigning": false,
+  "git.fetchOnPull": true,
+  "git.pruneOnFetch": true,
+  "git.showPushSuccessNotification": true,
+
+  "// Terminal Integration": "Enhanced terminal for development",
+  "terminal.integrated.shell.windows": "powershell.exe",
+  "terminal.integrated.defaultProfile.windows": "PowerShell",
+  "terminal.integrated.profiles.windows": {
+    "PowerShell": {
+      "source": "PowerShell",
+      "icon": "terminal-powershell"
+    },
+    "Command Prompt": {
+      "path": [
+        "${env:windir}\\Sysnative\\cmd.exe",
+        "${env:windir}\\System32\\cmd.exe"
+      ],
+      "args": [],
+      "icon": "terminal-cmd"
+    },
+    "Git Bash": {
+      "source": "Git Bash"
+    }
+  },
+  "terminal.integrated.env.windows": {},
+  "terminal.integrated.inheritEnv": true,
+
+  "// Language-Specific AI Optimization": "Enhanced language support",
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.black-formatter",
+    "editor.formatOnSave": true,
+    "editor.formatOnType": true,
+    "editor.formatOnPaste": true,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": true,
+      "source.fixAll": true
+    },
+    "editor.insertSpaces": true,
+    "editor.tabSize": 4,
+    "editor.detectIndentation": false,
+    "editor.rulers": [88],
+    "editor.trimAutoWhitespace": true,
+    "files.trimTrailingWhitespace": true,
+    "files.insertFinalNewline": true
+  },
+
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.insertSpaces": true,
+    "editor.tabSize": 2
+  },
+
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.insertSpaces": true,
+    "editor.tabSize": 2
+  },
+
+  "[markdown]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.wordWrap": "on",
+    "editor.quickSuggestions": {
+      "comments": "off",
+      "strings": "off",
+      "other": "off"
+    }
+  },
+
+  "[yaml]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.insertSpaces": true,
+    "editor.tabSize": 2
+  },
+
+  "[php]": {
+    "editor.defaultFormatter": "bmewburn.vscode-intelephense-client",
+    "editor.formatOnSave": true,
+    "editor.insertSpaces": true,
+    "editor.tabSize": 4
+  },
+
+  "// Performance Optimization": "Enhanced performance for large projects",
+  "extensions.autoCheckUpdates": true,
+  "extensions.autoUpdate": true,
+  "update.mode": "start",
+  "update.enableWindowsBackgroundUpdates": true,
+
+  "// Enhanced Problem Solving": "Better error detection and resolution",
+  "problems.autoReveal": true,
+  "problems.decorations.enabled": true,
+  "problems.showCurrentInStatus": true,
+
+  "// AI Training Data Optimization": "Ensure AI learns from high-quality patterns",
+  "workbench.settings.editor": "json",
+  "workbench.settings.openDefaultSettings": false,
+  "workbench.settings.useSplitJSON": true,
+
+  "// Enhanced Debugging": "Rich debugging context for AI",
+  "debug.allowBreakpointsEverywhere": true,
+  "debug.inlineValues": "on",
+  "debug.showBreakpointsInOverviewRuler": true,
+  "debug.showInStatusBar": "always",
+
+  "// Workspace Trust": "Security settings for AI development",
+  "security.workspace.trust.untrustedFiles": "prompt",
+  "security.workspace.trust.banner": "always",
+  "security.workspace.trust.startupPrompt": "always",
+  "security.workspace.trust.emptyWindow": true,
+
+  "// Advanced Folding": "Code structure for AI understanding",
+  "editor.foldingStrategy": "indentation",
+  "editor.foldingHighlight": true,
+  "editor.unfoldOnClickAfterEndOfLine": true,
+  "editor.showFoldingControls": "always",
+
+  "// Enhanced Minimap": "Visual code overview",
+  "editor.minimap.enabled": true,
+  "editor.minimap.showSlider": "always",
+  "editor.minimap.renderCharacters": true,
+  "editor.minimap.maxColumn": 120,
+  "editor.minimap.size": "proportional",
+
+  "// AI-Optimized Color Theme": "Enhanced syntax highlighting for AI recognition",
+  "workbench.colorTheme": "Python Monokai",
+  "workbench.iconTheme": "vscode-icons",
+  "workbench.productIconTheme": "Default",
+
+  "// Enhanced File Associations": "Better language detection",
+  "files.associations": {
+    "*.py": "python",
+    "*.pyi": "python",
+    "*.pyx": "python",
+    "*.pxd": "python",
+    "*.pth": "python",
+    "*.pt": "python",
+    "*.txt": "plaintext",
+    ".env*": "dotenv",
+    "*.env": "dotenv",
+    "requirements*.txt": "pip-requirements",
+    "Pipfile": "toml",
+    "pyproject.toml": "toml",
+    "*.toml": "toml",
+    "*.ini": "ini",
+    "*.cfg": "ini",
+    "*.conf": "ini",
+    "Dockerfile*": "dockerfile",
+    "docker-compose*.yml": "yaml",
+    "docker-compose*.yaml": "yaml",
+    "*.yml": "yaml",
+    "*.yaml": "yaml"
+  }
+}

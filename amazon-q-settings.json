@@ -1,0 +1,72 @@
+# Amazon Q VS Code Optimization Settings
+# Add these to your VS Code settings.json for better Amazon Q performance
+
+{
+  // Amazon Q Enhanced Settings for Better AI Suggestions
+  "amazonQ.enable": true,
+  "amazonQ.autoTrigger": true,
+  "amazonQ.maxSuggestions": 5,
+  "amazonQ.suggestionDelay": 100,
+  "amazonQ.enableInlineCompletion": true,
+  "amazonQ.enableCodeActions": true,
+  "amazonQ.enableHover": true,
+  "amazonQ.enableSignatureHelp": true,
+
+  // Enhanced IntelliSense for better AI context
+  "editor.quickSuggestions": {
+    "other": "on",
+    "comments": "on",
+    "strings": "on"
+  },
+  "editor.quickSuggestionsDelay": 10,
+  "editor.suggestOnTriggerCharacters": true,
+  "editor.acceptSuggestionOnCommitCharacter": true,
+  "editor.acceptSuggestionOnEnter": "on",
+  "editor.tabCompletion": "on",
+  "editor.wordBasedSuggestions": "allDocuments",
+  "editor.parameterHints.enabled": true,
+  "editor.parameterHints.cycle": true,
+
+  // Python-specific enhancements for Amazon Q
+  "[python]": {
+    "editor.insertSpaces": true,
+    "editor.tabSize": 4,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit"
+    },
+    "editor.formatOnSave": true,
+    "editor.formatOnType": true
+  },
+
+  // AI Completion Optimization
+  "python.analysis.typeCheckingMode": "basic",
+  "python.analysis.autoImportCompletions": true,
+  "python.analysis.completeFunctionParens": true,
+  "python.analysis.autoSearchPaths": true,
+
+  // Enhanced Typing for Better AI Context
+  "python.analysis.inlayHints.functionReturnTypes": true,
+  "python.analysis.inlayHints.variableTypes": true,
+  "python.analysis.inlayHints.parameterTypes": true,
+
+  // File associations for Amazon Q optimization
+  "files.associations": {
+    "*.py": "python",
+    "*.pyi": "python",
+    "*.ipynb": "jupyter-notebook"
+  },
+
+  // Enable all language features for better suggestions
+  "python.languageServer": "Pylance",
+  "python.analysis.completeFunctionParens": true,
+  "python.analysis.autoImportCompletions": true,
+
+  // Amazon Q Chat Integration
+  "amazonQ.chat.enabled": true,
+  "amazonQ.chat.followUps": "always",
+  "amazonQ.chat.welcomeMessage": "never",
+
+  // Workspace trust for better AI suggestions
+  "security.workspace.trust.enabled": false,
+  "security.workspace.trust.untrustedFiles": "open"
+}

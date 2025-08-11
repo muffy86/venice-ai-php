@@ -1,0 +1,227 @@
+{
+  // 🚀 ULTIMATE ELITE VS CODE SETTINGS - FIXED & ENHANCED
+  // Ultra-modern development environment with AI, automation, and advanced tools
+
+  // 🎨 ULTIMATE WORKBENCH & UI
+  "workbench.colorTheme": "One Dark Pro Darker",
+  "workbench.iconTheme": "material-icon-theme",
+  "workbench.startupEditor": "none",
+  "workbench.editor.enablePreview": false,
+  "workbench.editor.showTabs": "multiple",
+  "workbench.statusBar.visible": true,
+  "workbench.activityBar.visible": true,
+  "workbench.menuBar.visibility": "compact",
+
+  // 🎪 ULTIMATE EDITOR ENHANCEMENTS
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": true,
+  "editor.formatOnType": true,
+  "editor.suggestSelection": "first",
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.fontSize": 14,
+  "editor.fontFamily": "'Fira Code', 'JetBrains Mono', 'Cascadia Code', 'Source Code Pro', monospace",
+  "editor.fontLigatures": true,
+  "editor.wordWrap": "bounded",
+  "editor.wordWrapColumn": 120,
+  "editor.rulers": [80, 100, 120],
+  "editor.minimap.enabled": true,
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": "active",
+  "editor.inlineSuggest.enabled": true,
+  "editor.smoothScrolling": true,
+  "editor.mouseWheelZoom": true,
+  "editor.semanticHighlighting.enabled": true,
+  "editor.stickyScroll.enabled": true,
+
+  // 🚀 AUTO-SAVE & AUTO-CONFIG
+  "files.autoSave": "afterDelay",
+  "files.autoSaveDelay": 1000,
+  "files.trimTrailingWhitespace": true,
+  "files.trimFinalNewlines": true,
+  "files.insertFinalNewline": true,
+
+  // 🧠 ULTIMATE AI INTEGRATIONS
+  "github.copilot.enable": {
+    "*": true,
+    "yaml": true,
+    "plaintext": true,
+    "markdown": true
+  },
+  "github.copilot.chat.followUps": "always",
+  "github.copilot.chat.localeOverride": "en",
+  "tabnine.experimentalAutoImports": true,
+  "codeium.enableCodeLens": true,
+  "blackboxAI.enabled": true,
+  "continue.enableTabAutocomplete": true,
+
+  // 🔤 SPELL CHECKER - CORRECTLY CONFIGURED
+  "cSpell.enabled": true,
+  "cSpell.language": "en,en-US",
+  "cSpell.enabledFileTypes": {
+    "markdown": true,
+    "text": true,
+    "plaintext": true,
+    "typescript": true,
+    "javascript": true,
+    "python": true,
+    "php": true,
+    "vue": true,
+    "svelte": true,
+    "html": true,
+    "css": true,
+    "scss": true,
+    "json": true,
+    "jsonc": true,
+    "yaml": true,
+    "yml": true
+  },
+  "cSpell.diagnosticLevel": "Hint",
+  "cSpell.showCommandsInEditorContextMenu": true,
+
+  // 📚 GIT & VERSION CONTROL
+  "git.autofetch": true,
+  "git.confirmSync": false,
+  "git.enableSmartCommit": true,
+  "git.autoStash": true,
+  "git.decorations.enabled": true,
+
+  // 🖥️ TERMINAL CONFIGURATION
+  "terminal.integrated.fontSize": 14,
+  "terminal.integrated.fontFamily": "'Fira Code', 'Cascadia Code', monospace",
+  "terminal.integrated.smoothScrolling": true,
+  "terminal.integrated.tabs.enabled": true,
+
+  // 🎯 INTELLISENSE & SUGGESTIONS
+  "typescript.suggest.autoImports": true,
+  "javascript.suggest.autoImports": true,
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "javascript.updateImportsOnFileMove.enabled": "always",
+
+  // 🌐 LANGUAGE CONFIGURATIONS
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 2
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 2
+  },
+  "[php]": {
+    "editor.defaultFormatter": "bmewburn.vscode-intelephense-client",
+    "editor.tabSize": 4
+  },
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.python",
+    "editor.tabSize": 4
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.tabSize": 2
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.wordWrap": "on"
+  },
+
+  // 🎛️ EXTENSION SETTINGS
+  "prettier.singleQuote": true,
+  "prettier.semi": true,
+  "prettier.tabWidth": 2,
+  "prettier.printWidth": 100,
+
+  "eslint.validate": ["javascript", "typescript", "vue"],
+  "eslint.format.enable": true,
+
+  "intelephense.format.enable": true,
+  "intelephense.completion.triggerParameterHints": true,
+
+  "python.formatting.provider": "black",
+  "python.linting.enabled": true,
+
+  // 🔍 SEARCH & EXPLORER
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/vendor": true,
+    "**/dist": true,
+    "**/build": true,
+    "**/.git": true,
+    "**/coverage": true
+  },
+  "explorer.confirmDelete": false,
+  "explorer.confirmDragAndDrop": false,
+  "explorer.fileNesting.enabled": true,
+
+  // 🚨 PROBLEMS & DEBUGGING
+  "problems.decorations.enabled": true,
+  "debug.inlineValues": "auto",
+  "debug.openDebug": "openOnDebugBreak",
+
+  // ⚡ PERFORMANCE OPTIMIZATIONS
+  "extensions.autoUpdate": true,
+  "telemetry.telemetryLevel": "off",
+  "security.workspace.trust.enabled": false,
+
+  // 🍞 BREADCRUMBS
+  "breadcrumbs.enabled": true,
+  "breadcrumbs.filePath": "on",
+  "breadcrumbs.symbolPath": "on",
+
+  // 🌟 ADVANCED FEATURES
+  "zenMode.centerLayout": false,
+  "zenMode.hideStatusBar": false,
+  "notebook.cellToolbarLocation": {
+    "default": "right"
+  },
+  "remote.SSH.showLoginTerminal": true,
+
+  // 🔧 MCP AI AGENT SERVERS
+  "mcp": {
+    "servers": {
+      "venice-ai-ultimate": {
+        "command": "node",
+        "args": ["c:/ai-agents/venice-ultimate.js"],
+        "env": {
+          "AI_MODE": "ultimate",
+          "APIS": "openai,anthropic,deepseek,openrouter,huggingface"
+        }
+      },
+      "github-automation": {
+        "command": "node",
+        "args": ["c:/ai-agents/github-bot.js"],
+        "env": {
+          "GITHUB_TOKEN": "${workspaceFolder}/.env",
+          "AUTO_PR": "true"
+        }
+      },
+      "gitlab-cicd": {
+        "command": "node",
+        "args": ["c:/ai-agents/gitlab-cicd.js"],
+        "env": {
+          "GITLAB_TOKEN": "${workspaceFolder}/.env",
+          "AUTO_DEPLOY": "true"
+        }
+      },
+      "n8n-workflows": {
+        "command": "node",
+        "args": ["c:/ai-agents/n8n-automation.js"],
+        "env": {
+          "N8N_API_KEY": "${workspaceFolder}/.env",
+          "AUTO_WORKFLOWS": "true"
+        }
+      }
+    }
+  },
+
+  // 🎨 FILE ASSOCIATIONS
+  "workbench.editorAssociations": {
+    "*.md": "vscode.markdown.preview.editor",
+    "*.ipynb": "jupyter-notebook"
+  },
+
+  // 💎 FINAL ELITE SETTINGS
+  "workbench.settings.enableNaturalLanguageSearch": true,
+  "workbench.experimental.settingsProfiles.enabled": true,
+  "accessibility.signals.sounds.volume": 0.3,
+  "accessibility.signals.sounds.enabled": "auto"
+}

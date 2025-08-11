@@ -203,11 +203,11 @@ $image = $venice->generateImage([
 ## 📚 Additional Resources & Documentation
 
 ### Official Documentation
-- [Venice AI Documentation](https://docs.venice.ai) - Complete API guides and references
-- [API Reference](https://api.venice.ai/docs) - Detailed endpoint documentation
-- [Support Portal](https://venice.ai/support) - Technical support and community
+- [Venice AI Documentation](https://venice.ai/docs) - Complete API guides and references
+- [API Reference](https://venice.ai/api-docs) - Detailed endpoint documentation
+- [Support Portal](https://venice.ai/help) - Technical support and community
 
 ### Learning Resources
-- [Venice AI Blog](https://venice.ai/blog) - Latest updates and tutorials
-- [Community Forums](https://community.venice.ai) - Developer discussions
-- [GitHub Repository](https://github.com/venice/venice-php) - Source code and examples
+- [Venice AI Blog](https://venice.ai/news) - Latest updates and tutorials
+- [Community Forums](https://venice.ai/community) - Developer discussions
+- [GitHub Repository](https://github.com/muffy86/venice-ai-php) - Source code and examples
