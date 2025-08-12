@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TalkToApp - AI-Powered Personal Assistant</title>
+    <meta name="description" content="Intelligent personal assistant with behavioral learning and context awareness">
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="styles/main.css" as="style">
+    <link rel="preload" href="modules/app-core.js" as="script">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/components.css">
+    
+    <!-- Icons -->
+    <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#667eea">
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="loading-animation">
+            <div class="brain-icon">🧠</div>
+            <h2>TalkToApp</h2>
+            <p>Initializing AI systems...</p>
+            <div class="progress-bar">
+                <div class="progress-fill" id="loadingProgress"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="app" class="app-container" style="display: none;">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="logo-section">
+                    <div class="app-logo">🧠</div>
+                    <h1>TalkToApp</h1>
+                    <span class="version">v2.0</span>
+                </div>
+                
+                <div class="header-controls">
+                    <!-- Context Learning Indicator -->
+                    <div id="contextIndicator" class="context-indicator" title="AI Learning Status">
+                        <div class="learning-pulse"></div>
+                        <span>Learning</span>
+                    </div>
+                    
+                    <!-- MCP Status -->
+                    <div id="mcpStatus" class="mcp-status" title="API Connections">
+                        <div class="status-dot"></div>
+                        <span>APIs</span>
+                    </div>
+                    
+                    <!-- Settings -->
+                    <button class="icon-button" id="settingsBtn" title="Settings" aria-label="Open Settings">
+                        ⚙️
+                    </button>
+                    
+                    <!-- API Key Manager -->
+                    <button class="icon-button" id="apiKeyBtn" title="API Keys (Ctrl+K)" aria-label="Manage API Keys">
+                        🔑
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Sidebar -->
+            <aside class="sidebar" id="sidebar">
+                <!-- Web History Panel -->
+                <div class="panel" id="webHistoryPanel">
+                    <div class="panel-header">
+                        <h3>📊 Web Activity</h3>
+                        <div class="panel-controls">
+                            <button class="toggle-btn" id="trackingToggle" title="Toggle Tracking">
+                                <span class="toggle-slider"></span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="panel-content">
+                        <div class="activity-stats">
+                            <div class="stat-item">
+                                <span class="stat-value" id="todayVisits">0</span>
+                                <span class="stat-label">Today's Visits</span>
+                            </div>
+                            <div class="stat-item">
+                                <span class="stat-value" id="activeTime">0m</span>
+                                <span class="stat-label">Active Time</span>
+                            </div>
+                        </div>
+                        <div class="recent-activity" id="recentActivity">
+                            <!-- Dynamic content -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Knowledge Suggestions -->
+                <div class="panel" id="knowledgeSuggestions">
+                    <div class="panel-header">
+                        <h3>💡 Smart Suggestions</h3>
+                    </div>
+                    <div class="panel-content">
+                        <div class="suggestions-list" id="suggestionsList">
+                            <!-- Dynamic content -->
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Chat Interface -->
+            <section class="chat-section">
+                <div class="chat-container">
+                    <!-- Chat Messages -->
+                    <div class="chat-messages" id="chatMessages" role="log" aria-live="polite">
+                        <div class="welcome-message">
+                            <div class="ai-avatar">🤖</div>
+                            <div class="message-content">
+                                <h3>Welcome to TalkToApp!</h3>
+                                <p>I'm your AI assistant with behavioral learning capabilities. I can help you with:</p>
+                                <ul>
+                                    <li>🧠 Learning from your behavior patterns</li>
+                                    <li>📊 Tracking and analyzing your web activity</li>
+                                    <li>🔗 Managing multiple AI service connections</li>
+                                    <li>💡 Providing context-aware suggestions</li>
+                                </ul>
+                                <p>Start by typing a message or asking me anything!</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chat Input -->
+                    <div class="chat-input-container">
+                        <div class="input-wrapper">
+                            <textarea 
+                                id="chatInput" 
+                                placeholder="Type your message here... (Shift+Enter for new line)"
+                                rows="1"
+                                aria-label="Chat message input"
+                                maxlength="2000"
+                            ></textarea>
+                            <div class="input-actions">
+                                <button id="attachBtn" class="action-btn" title="Attach file" aria-label="Attach file">
+                                    📎
+                                </button>
+                                <button id="voiceBtn" class="action-btn" title="Voice input" aria-label="Voice input">
+                                    🎤
+                                </button>
+                                <button id="sendBtn" class="send-btn" title="Send message" aria-label="Send message">
+                                    ➤
+                                </button>
+                            </div>
+                        </div>
+                        <div class="input-footer">
+                            <span class="char-count">
+                                <span id="charCount">0</span>/2000
+                            </span>
+                            <span class="shortcuts">
+                                Press Enter to send • Shift+Enter for new line
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal Overlay -->
+    <div id="modalOverlay" class="modal-overlay" style="display: none;">
+        <!-- API Key Manager Modal -->
+        <div id="apiKeyManager" class="modal api-key-modal">
+            <div class="modal-header">
+                <h2>🔑 API Key Manager</h2>
+                <button class="close-btn" id="closeApiModal" aria-label="Close modal">×</button>
+            </div>
+            <div class="modal-content">
+                <div class="api-services">
+                    <div class="service-item">
+                        <div class="service-info">
+                            <span class="service-name">OpenAI</span>
+                            <span class="service-status" id="openaiStatus">Not configured</span>
+                        </div>
+                        <input type="password" placeholder="Enter API key" id="openaiKey" class="api-input">
+                    </div>
+                    <div class="service-item">
+                        <div class="service-info">
+                            <span class="service-name">Anthropic</span>
+                            <span class="service-status" id="anthropicStatus">Not configured</span>
+                        </div>
+                        <input type="password" placeholder="Enter API key" id="anthropicKey" class="api-input">
+                    </div>
+                    <div class="service-item">
+                        <div class="service-info">
+                            <span class="service-name">Google AI</span>
+                            <span class="service-status" id="googleStatus">Not configured</span>
+                        </div>
+                        <input type="password" placeholder="Enter API key" id="googleKey" class="api-input">
+                    </div>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn-secondary" id="testConnections">Test Connections</button>
+                    <button class="btn-primary" id="saveApiKeys">Save Keys</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Modal -->
+        <div id="settingsModal" class="modal settings-modal" style="display: none;">
+            <div class="modal-header">
+                <h2>⚙️ Settings</h2>
+                <button class="close-btn" id="closeSettingsModal" aria-label="Close modal">×</button>
+            </div>
+            <div class="modal-content">
+                <div class="settings-section">
+                    <h3>Privacy & Data</h3>
+                    <label class="setting-item">
+                        <input type="checkbox" id="enableTracking" checked>
+                        <span>Enable web activity tracking</span>
+                    </label>
+                    <label class="setting-item">
+                        <input type="checkbox" id="anonymizeData">
+                        <span>Anonymize collected data</span>
+                    </label>
+                </div>
+                <div class="settings-section">
+                    <h3>AI Behavior</h3>
+                    <label class="setting-item">
+                        <input type="checkbox" id="enableLearning" checked>
+                        <span>Enable behavioral learning</span>
+                    </label>
+                    <label class="setting-item">
+                        <input type="checkbox" id="proactiveSuggestions" checked>
+                        <span>Show proactive suggestions</span>
+                    </label>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn-secondary" id="resetSettings">Reset to Defaults</button>
+                    <button class="btn-primary" id="saveSettings">Save Settings</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Container -->
+    <div id="notificationContainer" class="notification-container"></div>
+
+    <!-- Scripts -->
+    <script src="modules/app-core.js"></script>
+    <script src="modules/behavioral-learning-engine.js"></script>
+    <script src="modules/web-history-tracker.js"></script>
+    <script src="modules/enhanced-knowledge-database.js"></script>
+    <script src="modules/mcp-pipeline-manager.js"></script>
+    <script src="modules/context-learning-engine.js"></script>
+    <script src="modules/ui-manager.js"></script>
+    <script src="modules/chat-interface.js"></script>
+    
+    <!-- Initialize App -->
+    <script>
+        // Initialize application when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.TalkToApp) {
+                window.TalkToApp.initialize();
+            }
+        });
+    </script>
+</body>
+</html>
