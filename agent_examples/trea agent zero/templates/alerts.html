@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alert Management - Analytics Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/material.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .alert-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            transition: transform 0.2s;
+        }
+        .alert-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+        .alert-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            border-radius: 10px 10px 0 0;
+        }
+        .alert-content {
+            padding: 20px;
+        }
+        .severity-badge {
+            font-size: 0.75rem;
+            padding: 4px 8px;
+            border-radius: 12px;
+        }
+        .severity-critical {
+            background-color: #dc3545;
+            color: white;
+        }
+        .severity-high {
+            background-color: #fd7e14;
+            color: white;
+        }
+        .severity-medium {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        .severity-low {
+            background-color: #20c997;
+            color: white;
+        }
+        .severity-info {
+            background-color: #0dcaf0;
+            color: white;
+        }
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        .status-firing { background-color: #dc3545; }
+        .status-resolved { background-color: #28a745; }
+        .status-pending { background-color: #ffc107; }
+        .status-silenced { background-color: #6c757d; }
+        .stats-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .stats-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .filter-section {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .timeline-item {
+            border-left: 3px solid #dee2e6;
+            padding-left: 20px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -6px;
+            top: 0;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #dee2e6;
+        }
+        .timeline-item.firing {
+            border-left-color: #dc3545;
+        }
+        .timeline-item.firing::before {
+            background: #dc3545;
+        }
+        .timeline-item.resolved {
+            border-left-color: #28a745;
+        }
+        .timeline-item.resolved::before {
+            background: #28a745;
+        }
+        .rule-editor {
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            min-height: 200px;
+        }
+        .notification-channel {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .notification-channel:hover {
+            border-color: #0d6efd;
+            background-color: #f8f9ff;
+        }
+        .notification-channel.selected {
+            border-color: #0d6efd;
+            background-color: #e7f1ff;
+        }
+        .alert-chart {
+            height: 300px;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-bell me-2"></i>
+                Alert Management
+            </a>
+            <div class="navbar-nav ms-auto">
+                <a class="nav-link" href="/dashboards">
+                    <i class="fas fa-chart-bar me-1"></i>
+                    Dashboards
+                </a>
+                <a class="nav-link" href="#" onclick="refreshAlerts()">
+                    <i class="fas fa-sync-alt me-1"></i>
+                    Refresh
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mt-3">
+        <!-- Statistics Row -->
+        <div class="row">
+            <div class="col-md-3">
+                <div class="stats-card">
+                    <div class="stats-number" id="totalAlerts">0</div>
+                    <div>Total Alerts</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                    <div class="stats-number" id="firingAlerts">0</div>
+                    <div>Firing</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                    <div class="stats-number" id="resolvedAlerts">0</div>
+                    <div>Resolved</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="stats-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                    <div class="stats-number" id="silencedAlerts">0</div>
+                    <div>Silenced</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- Main Content -->
+            <div class="col-lg-8">
+                <!-- Filters -->
+                <div class="filter-section">
+                    <div class="row align-items-center">
+                        <div class="col-md-3">
+                            <select class="form-select" id="severityFilter" onchange="filterAlerts()">
+                                <option value="">All Severities</option>
+                                <option value="critical">Critical</option>
+                                <option value="high">High</option>
+                                <option value="medium">Medium</option>
+                                <option value="low">Low</option>
+                                <option value="info">Info</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select" id="statusFilter" onchange="filterAlerts()">
+                                <option value="">All Statuses</option>
+                                <option value="firing">Firing</option>
+                                <option value="resolved">Resolved</option>
+                                <option value="pending">Pending</option>
+                                <option value="silenced">Silenced</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <input type="text" class="form-control" id="searchFilter" placeholder="Search alerts..." onkeyup="filterAlerts()">
+                        </div>
+                        <div class="col-md-2">
+                            <button class="btn btn-primary w-100" onclick="showCreateAlertModal()">
+                                <i class="fas fa-plus me-2"></i>New Alert
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alert List -->
+                <div id="alertList">
+                    <!-- Alerts will be loaded dynamically -->
+                </div>
+
+                <!-- Loading Indicator -->
+                <div id="loadingIndicator" class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p class="mt-2 text-muted">Loading alerts...</p>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <!-- Alert Timeline -->
+                <div class="alert-card">
+                    <div class="alert-header">
+                        <h5><i class="fas fa-history me-2"></i>Recent Activity</h5>
+                    </div>
+                    <div class="alert-content">
+                        <div id="alertTimeline">
+                            <!-- Timeline items will be loaded dynamically -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alert Statistics Chart -->
+                <div class="alert-card">
+                    <div class="alert-header">
+                        <h5><i class="fas fa-chart-pie me-2"></i>Alert Distribution</h5>
+                    </div>
+                    <div class="alert-content">
+                        <canvas id="alertChart" class="alert-chart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="alert-card">
+                    <div class="alert-header">
+                        <h5><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
+                    </div>
+                    <div class="alert-content">
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-outline-primary" onclick="silenceAllAlerts()">
+                                <i class="fas fa-volume-mute me-2"></i>Silence All
+                            </button>
+                            <button class="btn btn-outline-success" onclick="acknowledgeAllAlerts()">
+                                <i class="fas fa-check me-2"></i>Acknowledge All
+                            </button>
+                            <button class="btn btn-outline-info" onclick="exportAlerts()">
+                                <i class="fas fa-download me-2"></i>Export Alerts
+                            </button>
+                            <button class="btn btn-outline-secondary" onclick="showNotificationSettings()">
+                                <i class="fas fa-cog me-2"></i>Notification Settings
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Alert Modal -->
+    <div class="modal fade" id="createAlertModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-plus me-2"></i>
+                        Create New Alert Rule
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="createAlertForm">
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="alertName" class="form-label">Alert Name</label>
+                                    <input type="text" class="form-control" id="alertName" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="alertDescription" class="form-label">Description</label>
+                                    <textarea class="form-control" id="alertDescription" rows="3"></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="alertSeverity" class="form-label">Severity</label>
+                                    <select class="form-select" id="alertSeverity" required>
+                                        <option value="critical">Critical</option>
+                                        <option value="high">High</option>
+                                        <option value="medium" selected>Medium</option>
+                                        <option value="low">Low</option>
+                                        <option value="info">Info</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="alertDataSource" class="form-label">Data Source</label>
+                                    <select class="form-select" id="alertDataSource" required>
+                                        <!-- Options will be populated dynamically -->
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="alertCondition" class="form-label">Condition</label>
+                                    <select class="form-select" id="alertCondition">
+                                        <option value="greater_than">Greater than</option>
+                                        <option value="less_than">Less than</option>
+                                        <option value="equal_to">Equal to</option>
+                                        <option value="not_equal_to">Not equal to</option>
+                                        <option value="contains">Contains</option>
+                                        <option value="not_contains">Does not contain</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="alertThreshold" class="form-label">Threshold Value</label>
+                                    <input type="number" class="form-control" id="alertThreshold" step="0.01" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="alertDuration" class="form-label">Duration (minutes)</label>
+                                    <input type="number" class="form-control" id="alertDuration" value="5" min="1">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="alertEvaluationInterval" class="form-label">Evaluation Interval (seconds)</label>
+                                    <input type="number" class="form-control" id="alertEvaluationInterval" value="60" min="10">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="alertQuery" class="form-label">Query/Expression</label>
+                            <div class="rule-editor">
+                                <textarea id="alertQueryEditor" placeholder="Enter your alert query here..."></textarea>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Notification Channels</label>
+                            <div id="notificationChannels">
+                                <!-- Notification channels will be loaded dynamically -->
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="alertLabels" class="form-label">Labels (JSON format)</label>
+                            <textarea class="form-control" id="alertLabels" rows="3" placeholder='{"team": "backend", "service": "api"}'></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-primary" onclick="testAlertRule()">
+                            <i class="fas fa-play me-2"></i>Test Rule
+                        </button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i>Create Alert
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Details Modal -->
+    <div class="modal fade" id="alertDetailsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="alertDetailsTitle">Alert Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="alertDetailsBody">
+                    <!-- Alert details will be loaded dynamically -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-warning" onclick="silenceAlert()">
+                        <i class="fas fa-volume-mute me-2"></i>Silence
+                    </button>
+                    <button type="button" class="btn btn-outline-success" onclick="acknowledgeAlert()">
+                        <i class="fas fa-check me-2"></i>Acknowledge
+                    </button>
+                    <button type="button" class="btn btn-outline-danger" onclick="deleteAlert()">
+                        <i class="fas fa-trash me-2"></i>Delete
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Settings Modal -->
+    <div class="modal fade" id="notificationSettingsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-cog me-2"></i>
+                        Notification Settings
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Email Notifications</h6>
+                            <div class="mb-3">
+                                <label for="emailEnabled" class="form-label">Enable Email</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="emailEnabled">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="emailRecipients" class="form-label">Recipients</label>
+                                <textarea class="form-control" id="emailRecipients" rows="3" placeholder="admin@example.com, team@example.com"></textarea>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Slack Notifications</h6>
+                            <div class="mb-3">
+                                <label for="slackEnabled" class="form-label">Enable Slack</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="slackEnabled">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="slackWebhook" class="form-label">Webhook URL</label>
+                                <input type="url" class="form-control" id="slackWebhook" placeholder="https://hooks.slack.com/...">
+                            </div>
+                            <div class="mb-3">
+                                <label for="slackChannel" class="form-label">Channel</label>
+                                <input type="text" class="form-control" id="slackChannel" placeholder="#alerts">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>PagerDuty Integration</h6>
+                            <div class="mb-3">
+                                <label for="pagerdutyEnabled" class="form-label">Enable PagerDuty</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="pagerdutyEnabled">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="pagerdutyKey" class="form-label">Integration Key</label>
+                                <input type="text" class="form-control" id="pagerdutyKey" placeholder="Your PagerDuty integration key">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>SMS Notifications</h6>
+                            <div class="mb-3">
+                                <label for="smsEnabled" class="form-label">Enable SMS</label>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="smsEnabled">
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="smsNumbers" class="form-label">Phone Numbers</label>
+                                <textarea class="form-control" id="smsNumbers" rows="3" placeholder="+1234567890, +0987654321"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-primary" onclick="testNotifications()">
+                        <i class="fas fa-paper-plane me-2"></i>Test Notifications
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" onclick="saveNotificationSettings()">
+                        <i class="fas fa-save me-2"></i>Save Settings
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let alerts = [];
+        let filteredAlerts = [];
+        let selectedAlert = null;
+        let alertQueryEditor = null;
+        let alertChart = null;
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAlerts();
+            loadDataSources();
+            loadNotificationChannels();
+            initializeAlertChart();
+            initializeQueryEditor();
+            setupWebSocket();
+        });
+
+        // Initialize CodeMirror editor
+        function initializeQueryEditor() {
+            alertQueryEditor = CodeMirror.fromTextArea(document.getElementById('alertQueryEditor'), {
+                lineNumbers: true,
+                mode: 'javascript',
+                theme: 'material',
+                autoCloseBrackets: true,
+                matchBrackets: true,
+                indentWithTabs: true,
+                smartIndent: true
+            });
+        }
+
+        // Initialize alert chart
+        function initializeAlertChart() {
+            const ctx = document.getElementById('alertChart').getContext('2d');
+            alertChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Critical', 'High', 'Medium', 'Low', 'Info'],
+                    datasets: [{
+                        data: [0, 0, 0, 0, 0],
+                        backgroundColor: [
+                            '#dc3545',
+                            '#fd7e14',
+                            '#ffc107',
+                            '#20c997',
+                            '#0dcaf0'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Setup WebSocket for real-time updates
+        function setupWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}/ws/alerts`;
+            
+            const websocket = new WebSocket(wsUrl);
+            
+            websocket.onmessage = function(event) {
+                const message = JSON.parse(event.data);
+                
+                if (message.type === 'alert_update') {
+                    handleAlertUpdate(message.data);
+                }
+            };
+        }
+
+        // Handle real-time alert updates
+        function handleAlertUpdate(alertData) {
+            const existingIndex = alerts.findIndex(a => a.id === alertData.id);
+            
+            if (existingIndex >= 0) {
+                alerts[existingIndex] = alertData;
+            } else {
+                alerts.unshift(alertData);
+            }
+            
+            filterAlerts();
+            updateStatistics();
+            updateTimeline();
+            updateChart();
+        }
+
+        // Load alerts
+        async function loadAlerts() {
+            try {
+                showLoading(true);
+                
+                const response = await fetch('/api/alerts');
+                const data = await response.json();
+                
+                alerts = data.alerts || [];
+                filteredAlerts = [...alerts];
+                
+                renderAlerts();
+                updateStatistics();
+                updateTimeline();
+                updateChart();
+                
+                showLoading(false);
+            } catch (error) {
+                console.error('Failed to load alerts:', error);
+                showLoading(false);
+            }
+        }
+
+        // Render alerts
+        function renderAlerts() {
+            const container = document.getElementById('alertList');
+            
+            if (filteredAlerts.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="fas fa-bell-slash fa-4x text-muted mb-3"></i>
+                        <h3 class="text-muted">No Alerts Found</h3>
+                        <p class="text-muted">No alerts match your current filters</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = '';
+            
+            filteredAlerts.forEach(alert => {
+                const alertElement = createAlertElement(alert);
+                container.appendChild(alertElement);
+            });
+        }
+
+        // Create alert element
+        function createAlertElement(alert) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert-card';
+            alertDiv.onclick = () => showAlertDetails(alert);
+            
+            const statusClass = `status-${alert.status}`;
+            const severityClass = `severity-${alert.severity}`;
+            
+            alertDiv.innerHTML = `
+                <div class="alert-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <span class="status-indicator ${statusClass}"></span>
+                            <h6 class="mb-0">${alert.name}</h6>
+                            <span class="severity-badge ${severityClass} ms-2">${alert.severity.toUpperCase()}</span>
+                        </div>
+                        <div>
+                            <small class="text-muted">
+                                ${new Date(alert.created_at).toLocaleString()}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                <div class="alert-content">
+                    <p class="text-muted mb-2">${alert.description || 'No description available'}</p>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <small><strong>Data Source:</strong> ${alert.data_source}</small><br>
+                            <small><strong>Condition:</strong> ${alert.condition} ${alert.threshold}</small>
+                        </div>
+                        <div class="col-md-6">
+                            <small><strong>Duration:</strong> ${alert.duration} minutes</small><br>
+                            <small><strong>Last Evaluation:</strong> ${new Date(alert.last_evaluation).toLocaleString()}</small>
+                        </div>
+                    </div>
+                    ${alert.labels ? `
+                        <div class="mt-2">
+                            ${Object.entries(JSON.parse(alert.labels)).map(([key, value]) => 
+                                `<span class="badge bg-secondary me-1">${key}: ${value}</span>`
+                            ).join('')}
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+            
+            return alertDiv;
+        }
+
+        // Filter alerts
+        function filterAlerts() {
+            const severityFilter = document.getElementById('severityFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+            const searchFilter = document.getElementById('searchFilter').value.toLowerCase();
+            
+            filteredAlerts = alerts.filter(alert => {
+                const matchesSeverity = !severityFilter || alert.severity === severityFilter;
+                const matchesStatus = !statusFilter || alert.status === statusFilter;
+                const matchesSearch = !searchFilter || 
+                    alert.name.toLowerCase().includes(searchFilter) ||
+                    (alert.description && alert.description.toLowerCase().includes(searchFilter));
+                
+                return matchesSeverity && matchesStatus && matchesSearch;
+            });
+            
+            renderAlerts();
+        }
+
+        // Update statistics
+        function updateStatistics() {
+            const stats = {
+                total: alerts.length,
+                firing: alerts.filter(a => a.status === 'firing').length,
+                resolved: alerts.filter(a => a.status === 'resolved').length,
+                silenced: alerts.filter(a => a.status === 'silenced').length
+            };
+            
+            document.getElementById('totalAlerts').textContent = stats.total;
+            document.getElementById('firingAlerts').textContent = stats.firing;
+            document.getElementById('resolvedAlerts').textContent = stats.resolved;
+            document.getElementById('silencedAlerts').textContent = stats.silenced;
+        }
+
+        // Update timeline
+        function updateTimeline() {
+            const timeline = document.getElementById('alertTimeline');
+            const recentAlerts = alerts.slice(0, 10);
+            
+            timeline.innerHTML = '';
+            
+            recentAlerts.forEach(alert => {
+                const timelineItem = document.createElement('div');
+                timelineItem.className = `timeline-item ${alert.status}`;
+                
+                timelineItem.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="mb-1">${alert.name}</h6>
+                            <small class="text-muted">${alert.status.toUpperCase()}</small>
+                        </div>
+                        <small class="text-muted">
+                            ${new Date(alert.created_at).toLocaleTimeString()}
+                        </small>
+                    </div>
+                `;
+                
+                timeline.appendChild(timelineItem);
+            });
+        }
+
+        // Update chart
+        function updateChart() {
+            const severityCounts = {
+                critical: alerts.filter(a => a.severity === 'critical').length,
+                high: alerts.filter(a => a.severity === 'high').length,
+                medium: alerts.filter(a => a.severity === 'medium').length,
+                low: alerts.filter(a => a.severity === 'low').length,
+                info: alerts.filter(a => a.severity === 'info').length
+            };
+            
+            alertChart.data.datasets[0].data = [
+                severityCounts.critical,
+                severityCounts.high,
+                severityCounts.medium,
+                severityCounts.low,
+                severityCounts.info
+            ];
+            
+            alertChart.update();
+        }
+
+        // Show alert details
+        function showAlertDetails(alert) {
+            selectedAlert = alert;
+            
+            document.getElementById('alertDetailsTitle').textContent = alert.name;
+            document.getElementById('alertDetailsBody').innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Basic Information</h6>
+                        <table class="table table-sm">
+                            <tr><td><strong>Name:</strong></td><td>${alert.name}</td></tr>
+                            <tr><td><strong>Severity:</strong></td><td><span class="severity-badge severity-${alert.severity}">${alert.severity.toUpperCase()}</span></td></tr>
+                            <tr><td><strong>Status:</strong></td><td><span class="status-indicator status-${alert.status}"></span>${alert.status.toUpperCase()}</td></tr>
+                            <tr><td><strong>Data Source:</strong></td><td>${alert.data_source}</td></tr>
+                            <tr><td><strong>Created:</strong></td><td>${new Date(alert.created_at).toLocaleString()}</td></tr>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Configuration</h6>
+                        <table class="table table-sm">
+                            <tr><td><strong>Condition:</strong></td><td>${alert.condition} ${alert.threshold}</td></tr>
+                            <tr><td><strong>Duration:</strong></td><td>${alert.duration} minutes</td></tr>
+                            <tr><td><strong>Evaluation Interval:</strong></td><td>${alert.evaluation_interval} seconds</td></tr>
+                            <tr><td><strong>Last Evaluation:</strong></td><td>${new Date(alert.last_evaluation).toLocaleString()}</td></tr>
+                        </table>
+                    </div>
+                </div>
+                
+                ${alert.description ? `
+                    <div class="mt-3">
+                        <h6>Description</h6>
+                        <p>${alert.description}</p>
+                    </div>
+                ` : ''}
+                
+                <div class="mt-3">
+                    <h6>Query</h6>
+                    <pre class="bg-light p-3 rounded"><code>${alert.query}</code></pre>
+                </div>
+                
+                ${alert.labels ? `
+                    <div class="mt-3">
+                        <h6>Labels</h6>
+                        <div>
+                            ${Object.entries(JSON.parse(alert.labels)).map(([key, value]) => 
+                                `<span class="badge bg-secondary me-1">${key}: ${value}</span>`
+                            ).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+            `;
+            
+            const modal = new bootstrap.Modal(document.getElementById('alertDetailsModal'));
+            modal.show();
+        }
+
+        // Load data sources
+        async function loadDataSources() {
+            try {
+                const response = await fetch('/api/data-sources');
+                const data = await response.json();
+                
+                const select = document.getElementById('alertDataSource');
+                select.innerHTML = '<option value="">Select data source...</option>';
+                
+                data.sources.forEach(source => {
+                    const option = document.createElement('option');
+                    option.value = source.name;
+                    option.textContent = source.name;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Failed to load data sources:', error);
+            }
+        }
+
+        // Load notification channels
+        async function loadNotificationChannels() {
+            try {
+                const response = await fetch('/api/notifications/channels');
+                const data = await response.json();
+                
+                const container = document.getElementById('notificationChannels');
+                container.innerHTML = '';
+                
+                data.channels.forEach(channel => {
+                    const channelDiv = document.createElement('div');
+                    channelDiv.className = 'notification-channel';
+                    channelDiv.onclick = () => toggleNotificationChannel(channel.id);
+                    
+                    channelDiv.innerHTML = `
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">${channel.name}</h6>
+                                <small class="text-muted">${channel.type}</small>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="channel_${channel.id}">
+                            </div>
+                        </div>
+                    `;
+                    
+                    container.appendChild(channelDiv);
+                });
+            } catch (error) {
+                console.error('Failed to load notification channels:', error);
+            }
+        }
+
+        // Toggle notification channel
+        function toggleNotificationChannel(channelId) {
+            const checkbox = document.getElementById(`channel_${channelId}`);
+            const channelDiv = checkbox.closest('.notification-channel');
+            
+            checkbox.checked = !checkbox.checked;
+            
+            if (checkbox.checked) {
+                channelDiv.classList.add('selected');
+            } else {
+                channelDiv.classList.remove('selected');
+            }
+        }
+
+        // Show create alert modal
+        function showCreateAlertModal() {
+            const modal = new bootstrap.Modal(document.getElementById('createAlertModal'));
+            modal.show();
+        }
+
+        // Show notification settings modal
+        function showNotificationSettings() {
+            const modal = new bootstrap.Modal(document.getElementById('notificationSettingsModal'));
+            modal.show();
+        }
+
+        // Test alert rule
+        async function testAlertRule() {
+            const query = alertQueryEditor.getValue();
+            const dataSource = document.getElementById('alertDataSource').value;
+            
+            if (!query || !dataSource) {
+                alert('Please select a data source and enter a query');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/alerts/test', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        data_source: dataSource,
+                        query: query
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert(`Test successful! Query returned ${result.data.length} results.`);
+                } else {
+                    alert('Test failed: ' + result.error);
+                }
+            } catch (error) {
+                alert('Test failed: ' + error.message);
+            }
+        }
+
+        // Create alert form submission
+        document.getElementById('createAlertForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const selectedChannels = Array.from(document.querySelectorAll('#notificationChannels input:checked'))
+                .map(input => input.id.replace('channel_', ''));
+            
+            const alertData = {
+                name: document.getElementById('alertName').value,
+                description: document.getElementById('alertDescription').value,
+                severity: document.getElementById('alertSeverity').value,
+                data_source: document.getElementById('alertDataSource').value,
+                condition: document.getElementById('alertCondition').value,
+                threshold: parseFloat(document.getElementById('alertThreshold').value),
+                duration: parseInt(document.getElementById('alertDuration').value),
+                evaluation_interval: parseInt(document.getElementById('alertEvaluationInterval').value),
+                query: alertQueryEditor.getValue(),
+                notification_channels: selectedChannels,
+                labels: document.getElementById('alertLabels').value
+            };
+            
+            try {
+                const response = await fetch('/api/alerts', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(alertData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    alert('Alert created successfully!');
+                    bootstrap.Modal.getInstance(document.getElementById('createAlertModal')).hide();
+                    loadAlerts();
+                } else {
+                    alert('Failed to create alert: ' + result.error);
+                }
+            } catch (error) {
+                alert('Failed to create alert: ' + error.message);
+            }
+        });
+
+        // Alert actions
+        function silenceAlert() {
+            if (selectedAlert) {
+                // Implement silence functionality
+                console.log('Silencing alert:', selectedAlert.id);
+            }
+        }
+
+        function acknowledgeAlert() {
+            if (selectedAlert) {
+                // Implement acknowledge functionality
+                console.log('Acknowledging alert:', selectedAlert.id);
+            }
+        }
+
+        function deleteAlert() {
+            if (selectedAlert && confirm('Are you sure you want to delete this alert?')) {
+                // Implement delete functionality
+                console.log('Deleting alert:', selectedAlert.id);
+            }
+        }
+
+        // Bulk actions
+        function silenceAllAlerts() {
+            if (confirm('Are you sure you want to silence all firing alerts?')) {
+                console.log('Silencing all alerts');
+            }
+        }
+
+        function acknowledgeAllAlerts() {
+            if (confirm('Are you sure you want to acknowledge all alerts?')) {
+                console.log('Acknowledging all alerts');
+            }
+        }
+
+        function exportAlerts() {
+            console.log('Exporting alerts');
+        }
+
+        // Notification settings
+        function testNotifications() {
+            console.log('Testing notifications');
+        }
+
+        function saveNotificationSettings() {
+            console.log('Saving notification settings');
+        }
+
+        // Utility functions
+        function showLoading(show) {
+            document.getElementById('loadingIndicator').style.display = show ? 'block' : 'none';
+        }
+
+        function refreshAlerts() {
+            loadAlerts();
+        }
+    </script>
+</body>
+</html>

@@ -339,24 +339,24 @@ class AgentPool:
         self.max_agents = max_agents
         self.agents: Dict[str, Agent] = {}
         self.task_queue = asyncio.Queue()
-        
+
     async def auto_scale(self):
         """Auto-scale based on CPU and queue length"""
         while True:
             cpu_usage = psutil.cpu_percent(interval=1)
             queue_size = self.task_queue.qsize()
             active_agents = len(self.agents)
-            
+
             # Scale up conditions
             if (cpu_usage > 80 or queue_size > 10) and active_agents < self.max_agents:
                 await self.spawn_agent()
                 logger.info("Scaled up", active_agents=len(self.agents))
-            
+
             # Scale down conditions
             elif cpu_usage < 30 and queue_size < 2 and active_agents > self.min_agents:
                 await self.terminate_agent()
                 logger.info("Scaled down", active_agents=len(self.agents))
-            
+
             await asyncio.sleep(30)  # Check every 30 seconds
 ```
 
@@ -370,22 +370,22 @@ class TaskRouter:
             "creative": ["writing", "design", "brainstorming"],
             "analysis": ["data_mining", "pattern_recognition", "forecasting"]
         }
-        
+
     async def route_task(self, task: Task) -> str:
         """Route task to most suitable agent based on requirements"""
         task_requirements = self.analyze_task_requirements(task)
-        
+
         best_agent = None
         best_score = 0
-        
+
         for agent_type, capabilities in self.agent_capabilities.items():
             score = len(set(task_requirements) & set(capabilities))
             if score > best_score:
                 best_score = score
                 best_agent = agent_type
-                
+
         return best_agent
-        
+
     def analyze_task_requirements(self, task: Task) -> List[str]:
         """Analyze task to determine required capabilities"""
         keywords = {
@@ -394,14 +394,14 @@ class TaskRouter:
             "creative": ["write", "create", "design", "brainstorm"],
             "analysis": ["analyze", "predict", "forecast", "pattern"]
         }
-        
+
         requirements = []
         task_text = task.description.lower()
-        
+
         for capability, words in keywords.items():
             if any(word in task_text for word in words):
                 requirements.append(capability)
-                
+
         return requirements
 ```
 
@@ -415,13 +415,13 @@ class AutoFineTuner:
         self.base_model = base_model
         self.tokenizer = AutoTokenizer.from_pretrained(base_model)
         self.model = AutoModelForCausalLM.from_pretrained(base_model)
-        
+
     async def auto_fine_tune(self, training_data, validation_data):
         """Automatically fine-tune model with optimal hyperparameters"""
-        
+
         # Hyperparameter optimization
         best_params = await self.optimize_hyperparameters(training_data, validation_data)
-        
+
         # Training configuration
         training_args = TrainingArguments(
             output_dir="./fine_tuned_model",
@@ -438,7 +438,7 @@ class AutoFineTuner:
             greater_is_better=False,
             report_to="wandb"
         )
-        
+
         # Initialize trainer
         trainer = Trainer(
             model=self.model,
@@ -447,13 +447,13 @@ class AutoFineTuner:
             eval_dataset=validation_data,
             tokenizer=self.tokenizer
         )
-        
+
         # Train model
         trainer.train()
-        
+
         # Save fine-tuned model
         trainer.save_model()
-        
+
         return trainer.state.best_model_checkpoint
 ```
 
@@ -610,7 +610,7 @@ volumes:
 ```python
 class ModelRegistry:
     """Centralized model management and versioning"""
-    
+
     MODELS = {
         "gpt-4-turbo": {
             "provider": "openai",
@@ -631,17 +631,17 @@ class ModelRegistry:
             "capabilities": ["multimodal", "reasoning", "coding"]
         }
     }
-    
+
     @classmethod
     def get_optimal_model(cls, task_type: str, budget: float = None):
         """Select optimal model based on task requirements and budget"""
         suitable_models = []
-        
+
         for model_name, config in cls.MODELS.items():
             if task_type in config["capabilities"]:
                 if budget is None or config["cost_per_1k_tokens"] <= budget:
                     suitable_models.append((model_name, config))
-        
+
         # Sort by cost-effectiveness
         return sorted(suitable_models, key=lambda x: x[1]["cost_per_1k_tokens"])[0]
 ```
@@ -699,27 +699,27 @@ import hashlib
 class IntelligentCache:
     def __init__(self, redis_client):
         self.redis = redis_client
-        
+
     def cache_with_ttl(self, ttl=3600):
         def decorator(func):
             @wraps(func)
             async def wrapper(*args, **kwargs):
                 # Generate cache key
                 cache_key = self._generate_cache_key(func.__name__, args, kwargs)
-                
+
                 # Try to get from cache
                 cached_result = self.redis.get(cache_key)
                 if cached_result:
                     return pickle.loads(cached_result)
-                
+
                 # Execute function and cache result
                 result = await func(*args, **kwargs)
                 self.redis.setex(cache_key, ttl, pickle.dumps(result))
-                
+
                 return result
             return wrapper
         return decorator
-    
+
     def _generate_cache_key(self, func_name, args, kwargs):
         """Generate deterministic cache key"""
         key_data = f"{func_name}:{str(args)}:{str(sorted(kwargs.items()))}"
@@ -743,23 +743,23 @@ class LoadBalancer:
     def __init__(self, agents: List[Agent]):
         self.agents = agents
         self.agent_loads: Dict[str, int] = {agent.id: 0 for agent in agents}
-        
+
     async def get_least_loaded_agent(self) -> Agent:
         """Get agent with lowest current load"""
         min_load = min(self.agent_loads.values())
         available_agents = [
-            agent for agent in self.agents 
+            agent for agent in self.agents
             if self.agent_loads[agent.id] == min_load
         ]
         return random.choice(available_agents)
-    
+
     async def execute_with_load_balancing(self, task: Task) -> Any:
         """Execute task with automatic load balancing"""
         agent = await self.get_least_loaded_agent()
-        
+
         # Increment load counter
         self.agent_loads[agent.id] += 1
-        
+
         try:
             result = await agent.execute(task)
             return result
@@ -787,22 +787,22 @@ class ResourceMonitor:
     def __init__(self, alert_threshold=80):
         self.alert_threshold = alert_threshold
         self.metrics_history = []
-        
+
     async def monitor_system(self):
         """Continuous system monitoring"""
         while True:
             metrics = self.collect_metrics()
             self.metrics_history.append(metrics)
-            
+
             # Keep only last 100 measurements
             if len(self.metrics_history) > 100:
                 self.metrics_history.pop(0)
-            
+
             # Check for alerts
             await self.check_alerts(metrics)
-            
+
             await asyncio.sleep(10)  # Monitor every 10 seconds
-    
+
     def collect_metrics(self) -> SystemMetrics:
         """Collect current system metrics"""
         return SystemMetrics(
@@ -811,15 +811,15 @@ class ResourceMonitor:
             disk_usage=psutil.disk_usage('/').percent,
             network_io=psutil.net_io_counters()._asdict()
         )
-    
+
     async def check_alerts(self, metrics: SystemMetrics):
         """Check if any metrics exceed thresholds"""
         if metrics.cpu_percent > self.alert_threshold:
             await self.send_alert(f"High CPU usage: {metrics.cpu_percent}%")
-        
+
         if metrics.memory_percent > self.alert_threshold:
             await self.send_alert(f"High memory usage: {metrics.memory_percent}%")
-    
+
     async def send_alert(self, message: str):
         """Send alert notification"""
         logger.warning("SYSTEM_ALERT", message=message)
@@ -842,11 +842,11 @@ async def handle_message(event, say):
     """Handle Slack messages with AI agent"""
     if event.get("bot_id") is None:  # Ignore bot messages
         user_message = event["text"]
-        
+
         # Route to appropriate agent
         agent = await agent_router.route_message(user_message)
         response = await agent.process(user_message)
-        
+
         await say(response)
 
 # Start the app
@@ -880,11 +880,11 @@ async def execute_agent_task(
     try:
         # Route task to appropriate agent
         agent = await agent_pool.get_agent(request.agent_type)
-        
+
         # Execute with monitoring
         with metrics.timer("agent_execution_time"):
             result = await agent.execute(request.task)
-        
+
         # Log execution
         logger.info(
             "Task executed successfully",
@@ -892,9 +892,9 @@ async def execute_agent_task(
             agent_type=request.agent_type,
             user_id=current_user
         )
-        
+
         return {"status": "success", "result": result}
-        
+
     except Exception as e:
         logger.error("Task execution failed", error=str(e))
         raise HTTPException(status_code=500, detail=str(e))
@@ -977,14 +977,14 @@ class CircuitBreaker:
         self.failure_count = 0
         self.last_failure_time = None
         self.state = "CLOSED"  # CLOSED, OPEN, HALF_OPEN
-    
+
     async def call(self, func, *args, **kwargs):
         if self.state == "OPEN":
             if time.time() - self.last_failure_time > self.timeout:
                 self.state = "HALF_OPEN"
             else:
                 raise Exception("Circuit breaker is OPEN")
-        
+
         try:
             result = await func(*args, **kwargs)
             self.reset()
